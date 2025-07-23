@@ -1,0 +1,33 @@
+﻿@using BlakePlugin.DocsRenderer.Types
+<div class="sidebar bg-light border-start p-3 d-none d-lg-block right-sidebar">
+    <div class="toc-container">
+        <h6>On this page</h6>
+        <nav>
+            <ul>
+                @foreach (var docSection in PageSections)
+                {
+                    <li>
+                        <a href="#@docSection.Id">@docSection.Text</a>
+                        @if (docSection.Children.Count > 0)
+                        {
+                            <ul>
+                                @foreach (var child in docSection.Children)
+                                {
+                                    <li>
+                                        <a href="#@child.Id">@child.Text</a>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public required List<Section> PageSections { get; set; }
+
+}

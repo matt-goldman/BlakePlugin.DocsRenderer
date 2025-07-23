@@ -1,0 +1,85 @@
+﻿@using Blake.Types
+@using BlakePlugin.DocsRenderer.Types
+
+<nav id="course-toc" class="course-toc nav flex-column">
+    @foreach (var module in Modules)
+    {
+        <div class="module">
+            <a class="nav-link module-title" href="#" data-bs-toggle="collapse" data-bs-target="#module-@module.Id">
+                <i class="fas fa-chevron-@(module.Id == ActivePageId ? "down" : "right") me-2"></i>@module.Text
+            </a>
+            <div id="module-@module.Id" class="collapse @(module.Id == ActivePageId ? "show" : "") ps-2">
+                <nav class="nav flex-column module-pages">
+                    @foreach (var chapter in module.Children)
+                    {
+                        <a class="nav-link @(chapter.Id == Model.ActiveChapter ? "active" : "")" href="/Content/CourseContent?pageId=@chapter.Id" data-page-id="@chapter.Id">@chapter.Text</a>
+                    }
+                </nav>
+            </div>
+        </div>
+    }
+</nav>
+
+@code {
+
+        [Parameter]
+        public List<PageModel> Content { get; set; } = [];
+
+        [Parameter]
+        public string? ActivePage { get; set; }
+
+        [Parameter]
+        public string? ActiveSlug { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrEmpty(ActivePage) && string.IsNullOrEmpty(ActiveSlug))
+        {
+            throw new InvalidOperationException("SiteToc requires either ActivePage or ActiveSlug.");
+        }
+    }
+
+    private record TocNode(Section Section, string Slug, List<TocNode> Children);
+
+    private static List<TocNode> BuildSiteToc(List<PageModel> pages)
+    {
+        var root = new TocNode(new Section { Id = "root", Text = "Root", Children = [] }, "/", []);
+
+        foreach (var page in pages.OrderBy(p => p.Slug))
+        {
+            var slugParts = page.Slug
+                .Trim('/')
+                .Split('/')
+                .ToList();
+
+            var current = root;
+
+            for (int i = 0; i < slugParts.Count; i++)
+            {
+                var slugFragment = slugParts[i];
+                var isLeaf = i == slugParts.Count - 1;
+
+                var child = current.Children.FirstOrDefault(c => c.Slug == slugFragment);
+
+                if (child == null)
+                {
+                    child = new Section
+                    {
+                        Id = slugFragment,
+                        Text = isLeaf ? page.Title : slugFragment, // intermediate nodes can use slug
+                        Children = []
+                    };
+
+                    var slug = isLeaf ? page.Slug : "/" + string.Join('/', slugParts.Take(i + 1));
+                    current.Section.Children.Add(new TocNode(child, slug);
+                }
+
+                current = child;
+            }
+        }
+
+        return root.Children; // skip the dummy root
+    }
+
+
+}

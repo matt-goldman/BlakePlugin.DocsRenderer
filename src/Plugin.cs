@@ -1,5 +1,7 @@
 ﻿using Blake.BuildTools;
 using BlakePlugin.DocsRenderer.MarkdownExtensions;
+using BlakePlugin.DocsRenderer.Types;
+using System.Text;
 
 namespace BlakePlugin.DocsRenderer;
 
@@ -24,4 +26,101 @@ public class Plugin : IBlakePlugin
 
         return Task.CompletedTask;
     }
+
+    public Task AfterBakeAsync(BlakeContext context)
+    {
+        foreach (var page in context.GeneratedPages)
+        {
+            if (page.RazorHtml.Contains("<!-- blake:sections:"))
+            {
+                var sectionsJson = page.RazorHtml
+                    .Split("<!-- blake:sections:")[1]
+                    .Split("-->")[0]
+                    .Trim();
+
+                var sections = System.Text.Json.JsonSerializer.Deserialize<List<Section>>(sectionsJson);
+
+                if (sections == null || sections.Count == 0)
+                {
+                    continue; // No sections found, skip processing
+                }
+
+                var staticSectionList = GetStaticSectionList(sections);
+
+                var updatedHtml = page.RazorHtml
+                    .Replace($"<!-- blake:sections:{sectionsJson} -->", string.Empty)
+                    .Trim();
+
+                // add the using statement to the top of the RazorHtml if not already present
+                if (!updatedHtml.Contains("using BlakePlugin.DocsRenderer.Types;"))
+                {
+                    updatedHtml = $"@using BlakePlugin.DocsRenderer.Types;{Environment.NewLine}{updatedHtml}";
+                }
+
+                if (updatedHtml.Contains("@code"))
+                {
+                    // Find the last closing brace of the @code block
+                    var lastBraceIndex = updatedHtml.LastIndexOf('}');
+
+                    if (lastBraceIndex >= 0)
+                    {
+                        // Insert the static section list before the last closing brace
+                        updatedHtml = updatedHtml.Insert(lastBraceIndex, $"{Environment.NewLine}{staticSectionList}");
+                    }
+                    else
+                    {
+                        // malformed RazorHtml, skip and log an error
+                        Console.WriteLine($"Error: Could not find a valid @code block in the RazorHtml in page {page.Page.Title}.");
+                    }
+                }
+                else
+                {
+                    // If no @code block found, append the static section list at the end
+                    updatedHtml += $"{Environment.NewLine}@code{Environment.NewLine}{{{Environment.NewLine}{staticSectionList}{Environment.NewLine}}}";
+                }
+
+                var updatedPage = new GeneratedPage(page.Page, updatedHtml);
+                context.GeneratedPages[context.GeneratedPages.IndexOf(page)] = updatedPage;
+            }
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private static string GetStaticSectionList(IEnumerable<Section> sections)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"    private List<Section> _sections = [");
+        foreach (var section in sections)
+        {
+            AppendSection(section, sb, 1);
+        }
+        sb.AppendLine("];");
+        
+        return sb.ToString();
+    }
+
+    private static void AppendSection(Section section, StringBuilder sb, int indentLevel = 0)
+    {
+        var indent = new string(' ', indentLevel * 4);
+
+        sb.AppendLine($$"""
+    {{indent}}new Section {
+    {{indent}}    Id = @"{{EscapeVerbatim(section.Id)}}",
+    {{indent}}    Text = @"{{EscapeVerbatim(section.Text)}}",
+    {{indent}}    Children = [
+    """);
+
+        foreach (var child in section.Children)
+        {
+            AppendSection(child, sb, indentLevel + 1);
+        }
+
+        sb.AppendLine($"{indent}] }},");
+    }
+
+
+    private static string EscapeVerbatim(string input) =>
+    input.Replace("\"", "\"\"");
+
 }
