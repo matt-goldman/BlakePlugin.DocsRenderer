@@ -48,6 +48,9 @@ public class DocumentSectionRenderer : HtmlObjectRenderer<HeadingBlock>
             renderer.WriteLine("</Section>");
             _stack.Pop();
         }
+
+        var sectionJson = System.Text.Json.JsonSerializer.Serialize(_sections);
+        renderer.WriteLine($"<!-- blake:sections:{sectionJson} -->");
     }
 }
 

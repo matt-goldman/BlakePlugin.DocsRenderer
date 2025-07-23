@@ -16,7 +16,7 @@ public class DocumentSectionsExtension : IMarkdownExtension
             Renderer = new DocumentSectionRenderer();
             htmlRenderer.ObjectRenderers.ReplaceOrAdd<DocumentSectionRenderer>(Renderer);
 
-            htmlRenderer.ObjectRenderers.ReplaceOrAdd(
+            htmlRenderer.ObjectRenderers.ReplaceOrAdd<FinalizingDocumentRenderer>(
                 new FinalizingDocumentRenderer(Renderer)
             );
         }

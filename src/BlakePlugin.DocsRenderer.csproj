@@ -12,7 +12,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="HtmlAgilityPack" Version="1.12.2" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.6" />
 		<PackageReference Include="Blake.BuildTools" Version="1.0.0" />
 	</ItemGroup>
