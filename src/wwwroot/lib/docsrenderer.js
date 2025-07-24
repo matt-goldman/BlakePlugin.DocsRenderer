@@ -25,14 +25,46 @@ function registerScrollObserver() {
 }
 
 
-$(document).on('click', '.module-title', function () {
-    $(this).find('i').toggleClass('fa-chevron-right fa-chevron-down');
+document.addEventListener('click', function (e) {
+	if (e.target.closest('.module-title')) {
+		const icon = e.target.closest('.module-title').querySelector('.bi');
+		if (icon) {
+			icon.classList.toggle('bi-chevron-right');
+			icon.classList.toggle('bi-chevron-down');
+		}
+	}
 });
 
-$(document).ready(function () {
 
-    registerScrollObserver();
-});
+function initDocsRenderer() {
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", setup);
+	} else {
+		setup();
+	}
+
+	function setup() {
+		registerScrollObserver();
+
+		Prism.highlightAll();
+
+		if (Prism.plugins.lineHighlight) {
+			document.querySelectorAll("pre").forEach(pre => {
+				Prism.plugins.lineHighlight.highlightLines(pre);
+			});
+		} else {
+			console.warn("Prism lineHighlight plugin not found!");
+		}
+
+		if (Prism.plugins.lineHighlightExtended) {
+			document.querySelectorAll("pre code").forEach(code => {
+				Prism.plugins.lineHighlightExtended.highlightLines(code);
+			});
+		} else {
+			console.warn("Extended line highlight plugin not found!");
+		}
+	}
+}
 
 // Custom syntax highlighting for code blocks
 (function () {

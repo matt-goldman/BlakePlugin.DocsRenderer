@@ -1,91 +1,47 @@
-﻿@using Blake.Types
-@using BlakePlugin.DocsRenderer.Types
+﻿@using BlakePlugin.DocsRenderer.Types
 
-<nav id="course-toc" class="course-toc nav flex-column">
-    @foreach (var module in Modules)
-    {
-        <div class="module">
-            <a class="nav-link module-title" href="#" data-bs-toggle="collapse" data-bs-target="#module-@module.Id">
-                <i class="fas fa-chevron-@(module.Id == ActivePageId ? "down" : "right") me-2"></i>@module.Text
-            </a>
-            <div id="module-@module.Id" class="collapse @(module.Id == ActivePageId ? "show" : "") ps-2">
-                <nav class="nav flex-column module-pages">
-                    @foreach (var chapter in module.Children)
+@if (Nodes?.Any() == true)
+{
+    <ul class="nav flex-column">
+        @foreach (var node in Nodes)
+        {
+            var expanded = IsExpanded(node);
+            var active = IsActive(node);
+
+            <li class="nav-item">
+                <a class="nav-link module-title d-flex align-items-center justify-content-between"
+                   href="@node.Slug"
+                   aria-expanded="@expanded">
+                    <span>@node.Text</span>
+                    @if (node.Children.Any())
                     {
-                        <a class="nav-link @(chapter.Id == Model.ActiveChapter ? "active" : "")" href="/Content/CourseContent?pageId=@chapter.Id" data-page-id="@chapter.Id">@chapter.Text</a>
+                        <span class="bi @(expanded ? "bi-chevron-down" : "bi-chevron-up")"></span>
                     }
-                </nav>
-            </div>
-        </div>
-    }
-</nav>
+                </a>
+
+                @if (node.Children.Any())
+                {
+                    <div class="collapse @(expanded ? "show" : "") ms-3">
+                        <SiteToc Nodes="node.Children" ActiveSlug="ActiveSlug" />
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+}
+
 
 @code {
+    [Parameter]
+    public required List<TocNode> Nodes { get; set; }
 
-        [Parameter]
-        public List<PageModel> Content { get; set; } = [];
+    [Parameter]
+    public required string ActiveSlug { get; set; }
 
-        [Parameter]
-        public string? ActivePage { get; set; }
+    private bool IsExpanded(TocNode node) =>
+        !string.IsNullOrEmpty(ActiveSlug) &&
+        ActiveSlug.StartsWith(node.Slug, StringComparison.OrdinalIgnoreCase);
 
-        [Parameter]
-        public string? ActiveSlug { get; set; }
-
-    protected override void OnParametersSet()
-    {
-        if (string.IsNullOrEmpty(ActivePage) && string.IsNullOrEmpty(ActiveSlug))
-        {
-            throw new InvalidOperationException("SiteToc requires either ActivePage or ActiveSlug.");
-        }
-    }
-
-    public class TocNode : Section
-    {
-        public required string Slug { get; set; }
-
-        public new List<TocNode> Children { get; set; } = new();
-    }
-
-
-    public static List<TocNode> BuildSiteTocNodes(List<PageModel> pages)
-    {
-        var root = new TocNode
-        {
-            Id = "root",
-            Text = "Root",
-            Slug = "/",
-            Children = []
-        };
-
-        foreach (var page in pages.OrderBy(p => p.Slug))
-        {
-            var slugParts = page.Slug.Trim('/').Split('/');
-            var current = root;
-
-            for (int i = 0; i < slugParts.Length; i++)
-            {
-                var segment = slugParts[i];
-                var isLeaf = i == slugParts.Length - 1;
-                var slugPath = "/" + string.Join('/', slugParts.Take(i + 1));
-
-                var child = current.Children.FirstOrDefault(c => c.Id == segment);
-                if (child == null)
-                {
-                    child = new TocNode
-                    {
-                        Id = segment,
-                        Text = isLeaf ? page.Title : segment,
-                        Slug = slugPath,
-                        Children = []
-                    };
-                    current.Children.Add(child);
-                }
-
-                current = child;
-            }
-        }
-
-        return root.Children;
-    }
-
+    private bool IsActive(TocNode node) =>
+        string.Equals(ActiveSlug, node.Slug, StringComparison.OrdinalIgnoreCase);
 }
