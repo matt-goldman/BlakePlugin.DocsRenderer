@@ -115,9 +115,9 @@ public class Plugin : IBlakePlugin
         sb.AppendLine($"    private List<Section> _sections = [");
         foreach (var section in sections)
         {
-            AppendSection(section, sb, 1);
+            AppendSection(section, sb, 2);
         }
-        sb.AppendLine("];");
+        sb.AppendLine("    ];");
         
         return sb.ToString();
     }

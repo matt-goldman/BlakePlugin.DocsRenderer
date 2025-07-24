@@ -34,7 +34,7 @@ public class DocumentSectionRenderer : HtmlObjectRenderer<HeadingBlock>
         {
             Console.WriteLine($"[BlakePlugin.DocsRenderer] Closing section: {_stack.Peek().section.Id} at level {_stack.Peek().level}");
             _stack.Pop();
-            renderer.WriteLine("</Section>");
+            renderer.WriteLine("</section>");
         }
 
         if (_stack.Count > 0)
@@ -50,7 +50,7 @@ public class DocumentSectionRenderer : HtmlObjectRenderer<HeadingBlock>
 
         Console.WriteLine($"[BlakePlugin.DocsRenderer] Opening section: {headingId} at level {level} with text '{headingText}'");
 
-        renderer.WriteLine($"<Section id=\"{headingId}\">");
+        renderer.WriteLine($"<section id=\"{headingId}\">");
         renderer.Write($"<h{level} id=\"{headingId}\">{headingText}</h{level}>");
     }
 
@@ -60,7 +60,7 @@ public class DocumentSectionRenderer : HtmlObjectRenderer<HeadingBlock>
 
         while (_stack.Count > 0)
         {
-            renderer.WriteLine("</Section>");
+            renderer.WriteLine("</section>");
             _stack.Pop();
         }
 
