@@ -1,6 +1,7 @@
 ﻿using Blake.BuildTools;
 using BlakePlugin.DocsRenderer.MarkdownExtensions;
 using BlakePlugin.DocsRenderer.Types;
+using System.Diagnostics;
 using System.Text;
 
 namespace BlakePlugin.DocsRenderer;
@@ -20,6 +21,8 @@ public class Plugin : IBlakePlugin
         // This method is called before the bake process starts
         // You can add any pre-bake logic here if needed
 
+        Console.WriteLine("[BlakePlugin.DocsRenderer] BeforeBakeAsync called.");
+
         context.PipelineBuilder
             .UsePrism(_options)
             .UseDocumentSections();
@@ -29,10 +32,19 @@ public class Plugin : IBlakePlugin
 
     public Task AfterBakeAsync(BlakeContext context)
     {
-        foreach (var page in context.GeneratedPages)
+        Console.WriteLine("[BlakePlugin.DocsRenderer] AfterBakeAsync called.");
+
+        foreach (var page in context.GeneratedPages.ToList())
         {
+            if (string.IsNullOrWhiteSpace(page.RazorHtml))
+                continue;
+
+            Console.WriteLine($"Processing page: {page.Page.Title} ({page.Page.Slug})");
+
             if (page.RazorHtml.Contains("<!-- blake:sections:"))
             {
+                Console.WriteLine($"Found sections in page: {page.Page.Title} ({page.Page.Slug})");
+
                 var sectionsJson = page.RazorHtml
                     .Split("<!-- blake:sections:")[1]
                     .Split("-->")[0]
@@ -42,8 +54,11 @@ public class Plugin : IBlakePlugin
 
                 if (sections == null || sections.Count == 0)
                 {
+                    Console.WriteLine($"No sections found in page: {page.Page.Title} ({page.Page.Slug})");
                     continue; // No sections found, skip processing
                 }
+
+                Console.WriteLine($"Found {sections.Count} sections in page: {page.Page.Title} ({page.Page.Slug})");
 
                 var staticSectionList = GetStaticSectionList(sections);
 
@@ -54,11 +69,17 @@ public class Plugin : IBlakePlugin
                 // add the using statement to the top of the RazorHtml if not already present
                 if (!updatedHtml.Contains("using BlakePlugin.DocsRenderer.Types;"))
                 {
+                    Console.WriteLine("Adding using statement for BlakePlugin.DocsRenderer.Types.");
                     updatedHtml = $"@using BlakePlugin.DocsRenderer.Types;{Environment.NewLine}{updatedHtml}";
+                }
+                else
+                {
+                    Console.WriteLine("Using statement for BlakePlugin.DocsRenderer.Types already present.");
                 }
 
                 if (updatedHtml.Contains("@code"))
                 {
+                    Console.WriteLine("Found existing @code block in RazorHtml.");
                     // Find the last closing brace of the @code block
                     var lastBraceIndex = updatedHtml.LastIndexOf('}');
 
@@ -75,11 +96,12 @@ public class Plugin : IBlakePlugin
                 }
                 else
                 {
+                    Console.WriteLine("No existing @code block found in RazorHtml.");
                     // If no @code block found, append the static section list at the end
                     updatedHtml += $"{Environment.NewLine}@code{Environment.NewLine}{{{Environment.NewLine}{staticSectionList}{Environment.NewLine}}}";
                 }
 
-                var updatedPage = new GeneratedPage(page.Page, updatedHtml);
+                var updatedPage = new GeneratedPage(page.Page, page.OutputPath, updatedHtml);
                 context.GeneratedPages[context.GeneratedPages.IndexOf(page)] = updatedPage;
             }
         }
