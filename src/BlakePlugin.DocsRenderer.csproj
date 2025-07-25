@@ -17,7 +17,12 @@
 		<PackageTags>blazor; ssg; razor;</PackageTags>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-	</PropertyGroup>
+		<PackageIcon>icon.png</PackageIcon>
+  	</PropertyGroup>
+
+    <ItemGroup>
+      <None Include="..\assets\icon.png" Pack="true" PackagePath="" />
+    </ItemGroup>
 
 	<ItemGroup>
 		<None Include="..\LICENSE">
@@ -37,7 +42,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.6" />
-		<PackageReference Include="Blake.BuildTools" Version="1.0.0" />
+		<PackageReference Include="Blake.BuildTools" Version="*-*" />
 	</ItemGroup>
 
 </Project>
