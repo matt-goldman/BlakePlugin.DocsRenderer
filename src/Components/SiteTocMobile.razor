@@ -1,0 +1,47 @@
+﻿@using BlakePlugin.DocsRenderer.Types
+
+@if (Nodes?.Any() == true)
+{
+    <ul class="nav flex-column">
+        @foreach (var node in Nodes)
+        {
+            var expanded = IsExpanded(node);
+            var active = IsActive(node);
+
+            <li class="nav-item">
+                <a class="nav-link module-title d-flex align-items-center justify-content-between"
+                   href="@node.Slug"
+                   aria-expanded="@expanded">
+                    <span>@node.Text</span>
+                    @if (node.Children.Any())
+                    {
+                        <span class="bi @(expanded ? "bi-chevron-down" : "bi-chevron-up")"></span>
+                    }
+                </a>
+
+                @if (node.Children.Any())
+                {
+                    <div class="collapse @(expanded ? "show" : "") ms-3">
+                        <SiteToc Nodes="node.Children" ActiveSlug="ActiveSlug" />
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+}
+
+
+@code {
+    [Parameter]
+    public required List<TocNode> Nodes { get; set; }
+
+    [Parameter]
+    public required string ActiveSlug { get; set; }
+
+    private bool IsExpanded(TocNode node) =>
+        !string.IsNullOrEmpty(ActiveSlug) &&
+        ActiveSlug.StartsWith(node.Slug, StringComparison.OrdinalIgnoreCase);
+
+    private bool IsActive(TocNode node) =>
+        string.Equals(ActiveSlug, node.Slug, StringComparison.OrdinalIgnoreCase);
+}
