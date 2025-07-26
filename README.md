@@ -25,11 +25,15 @@ The plugin adds a custom Prism code renderer to the pipeline that enhances the d
     dotnet add package BlakePlugin.DocsRenderer
     ```
 
-2. Import the necessary styles and scripts in your `_Host.cshtml` or `index.html`:
+2. Import the necessary styles and scripts in your `index.html`, and initialise the DocsRenderer:
 
     ```html
+    <!-- Add this in the <head> section of your index.html file -->
     <link rel="stylesheet" href="_content/BlakePlugin.DocsRenderer/lib/docsrenderer.css">
-    <script src="_content/BlakePlugin.DocsRenderer/lib/docsrenderer.js"></script>
+
+    <!-- Add this before the closing </body> tag -->
+    <script src="_content/BlakePlugin.DocsRenderer/lib/docsrenderer.js"></script>    
+    <script>initDocsRenderer();</script> <!-- IMPORTANT: This must be called after the script is loaded -->
     ```
 
 ## Usage
