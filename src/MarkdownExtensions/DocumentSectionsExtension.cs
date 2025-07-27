@@ -8,8 +8,6 @@ namespace BlakePlugin.DocsRenderer.MarkdownExtensions;
 
 public class DocumentSectionsExtension : IMarkdownExtension
 {
-    public DocumentSectionRenderer? Renderer { get; private set; }
-
     public void Setup(MarkdownPipelineBuilder pipeline) { }
 
     public void Setup(MarkdownPipeline pipeline, IMarkdownRenderer renderer)
@@ -31,12 +29,12 @@ public class DocumentSectionsExtension : IMarkdownExtension
                 htmlRenderer.ObjectRenderers.Remove(r);
 
             // Now insert yours at the top
-            Renderer = new DocumentSectionRenderer();
-            htmlRenderer.ObjectRenderers.Insert(0, Renderer);
+            var sectionRenderer = new DocumentSectionRenderer();
+            htmlRenderer.ObjectRenderers.Insert(0, sectionRenderer);
 
 
             htmlRenderer.ObjectRenderers.ReplaceOrAdd<FinalizingDocumentRenderer>(
-                new FinalizingDocumentRenderer(Renderer)
+                new FinalizingDocumentRenderer(sectionRenderer)
             );
         }
     }
