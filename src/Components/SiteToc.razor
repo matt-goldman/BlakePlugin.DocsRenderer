@@ -6,7 +6,7 @@
         {
             <div class="module">
                 <a class="nav-link module-title" href="#" data-bs-toggle="collapse" data-bs-target="#module-@module.Id">
-                    <i class="bi bi-chevron-@(module.Id == ActiveSlug ? "down" : "right") me-2"></i>@module.Text
+                    <span class="bi bi-chevron-@(module.Id == ActiveSlug ? "down" : "right") me-2"></span>@module.Text
                 </a>
                 <div id="module-@module.Id" class="collapse @(module.Id == ActiveSlug ? "show" : "") ps-2" >
                     <nav class="nav flex-column module-pages">
