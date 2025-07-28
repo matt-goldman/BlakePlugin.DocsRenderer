@@ -312,7 +312,7 @@ function registerScrollObserver() {
     const observer = new IntersectionObserver(entries => {
         entries.forEach(entry => {
             const id = entry.target.getAttribute('id');
-            const a = document.querySelector(`.toc-container li a[href="#${id}"]`);
+            const a = document.querySelector(`.bdr-toc-container li a[href="#${id}"]`);
 
             if (entry.intersectionRatio > 0) {
                 if (a) {
@@ -334,8 +334,8 @@ function registerScrollObserver() {
 
 
 document.addEventListener('click', function (e) {
-	if (e.target.closest('.module-title')) {
-		const icon = e.target.closest('.module-title').querySelector('.bi');
+	if (e.target.closest('.bdr-node-title')) {
+		const icon = e.target.closest('.bdr-node-title').querySelector('.bi');
 		if (icon) {
 			icon.classList.toggle('bi-chevron-right');
 			icon.classList.toggle('bi-chevron-down');

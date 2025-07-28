@@ -1,0 +1,89 @@
+﻿.bdr-content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    height: calc(100vh - 60px);
+    padding-top: 55px;
+}
+
+.main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    width: 100%;
+}
+
+@media (min-width: 992px) {
+    .main-content {
+        max-width: calc(100% - 500px);
+        margin: 0 auto;
+    }
+}
+
+/* Optional: Wider spacing for ultra-wide screens */
+@media (min-width: 1400px) {
+    .main-content {
+        max-width: 1200px; /* you can tweak this if needed */
+    }
+}
+
+.bdr-sidebar {
+    width: 300px;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.bdr-page-toc {
+    position: sticky;
+    top: 20px;
+}
+
+.bdr-site-toc .bdr-node-title {
+    cursor: pointer;
+}
+
+.bdr-site-toc .bdr-module-pages {
+    /*    display: none;*/
+    padding-left: 30px;
+}
+/*
+.bdr-site-toc .module.active .bdr-module-pages {
+    display: block;
+}
+*/
+
+
+@media (max-width: 991.98px) {
+    .bdr-content-wrapper {
+        flex-direction: column;
+    }
+
+    .bdr-sidebar {
+        width: 100%;
+    }
+
+}
+
+.bdr-toc-container a {
+    text-decoration: none;
+    display: block;
+    padding: .125rem 0;
+    color: var(--bs-gray-900);
+    transition: all 50ms ease-in-out; /* ðŸ’¡ This small transition makes setting of the active state smooth */
+}
+
+.bdr-toc-container li {
+    padding-bottom: 0.5rem;
+    padding-top: 0.25rem;
+    padding-left: 0.5rem;
+    list-style-type: none;
+}
+
+    .bdr-toc-container li.active {
+        font-weight: bolder;
+        border-left: .125rem solid var(--bs-gray-900);
+    }
+
+    .bdr-toc-container li:hover {
+        background-color: var(--bs-gray-200);
+    }

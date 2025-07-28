@@ -1,4 +1,5 @@
 ﻿@using BlakePlugin.DocsRenderer.Types
+@using Microsoft.AspNetCore.Components.Routing
 
 @if (Nodes?.Any() == true)
 {
@@ -9,7 +10,7 @@
             var active = IsActive(node);
 
             <li class="nav-item">
-                <a class="nav-link module-title d-flex align-items-center justify-content-between"
+                <NavLink class="nav-link bdr-node-title d-flex align-items-center justify-content-between"
                    href="@node.Slug"
                    aria-expanded="@expanded">
                     <span>@node.Text</span>
@@ -17,12 +18,12 @@
                     {
                         <span class="bi @(expanded ? "bi-chevron-down" : "bi-chevron-up")"></span>
                     }
-                </a>
+                </NavLink>
 
                 @if (node.Children.Any())
                 {
                     <div class="collapse @(expanded ? "show" : "") ms-3">
-                        <SiteToc Nodes="node.Children" ActiveSlug="ActiveSlug" />
+                        <SiteTocMobile Nodes="node.Children" ActiveSlug="ActiveSlug" />
                     </div>
                 }
             </li>

@@ -1,18 +1,24 @@
 @using BlakePlugin.DocsRenderer.Types
-<div class="sidebar bg-light border-end p-3 d-none d-lg-block left-sidebar">
+@using Microsoft.AspNetCore.Components.Routing
+<div class="bdr-sidebar bg-light border-end p-3 d-none d-lg-block bdr-left-sidebar">
     <h5>@Title</h5>
-    <nav id="course-toc" class="course-toc nav flex-column">
-        @foreach (var module in Nodes)
+    <nav id="bdr-site-toc" class="bdr-site-toc nav flex-column">
+        @foreach (var node in Nodes)
         {
+            var expanded = IsExpanded(node);
+            var active = IsActive(node);
+
+            var navLinkClass = active ? "nav-link active" : "nav-link";
+
             <div class="module">
-                <a class="nav-link module-title" href="#" data-bs-toggle="collapse" data-bs-target="#module-@module.Id">
-                    <span class="bi bi-chevron-@(module.Id == ActiveSlug ? "down" : "right") me-2"></span>@module.Text
+                <a class="nav-link bdr-node-title" href="#" data-bs-toggle="collapse" data-bs-target="#module-@node.Id">
+                    <span class="bi @(expanded ? "bi-chevron-down" : "bi-chevron-right") me-2"></span>@node.Text
                 </a>
-                <div id="module-@module.Id" class="collapse @(module.Id == ActiveSlug ? "show" : "") ps-2" >
-                    <nav class="nav flex-column module-pages">
-                        @foreach (var chapter in module.Children)
+                <div id="module-@node.Id" class="collapse @(expanded ? "show" : "") ps-2" >
+                    <nav class="nav flex-column bdr-module-pages">
+                        @foreach (var child in node.Children)
                         {
-                            <a class="nav-link @(IsActive(chapter) ? "active" : "")" href="/Content/CourseContent?pageId=@chapter.Id" data-page-id="@chapter.Id">@chapter.Text</a>
+                            <NavLink class="@navLinkClass" href="@child.Slug" data-page-id="@child.Id">@child.Text</NavLink>
                         }
                     </nav>
                 </div>
