@@ -15,7 +15,7 @@ public class PrismExtension(PrismOptions options) : IMarkdownExtension
     {
         ArgumentNullException.ThrowIfNull(renderer);
 
-        if (renderer is TextRendererBase<HtmlRenderer> htmlRenderer)
+        if (renderer is HtmlRenderer htmlRenderer)
         {
             var codeBlockRenderer = htmlRenderer.ObjectRenderers.FindExact<CodeBlockRenderer>();
 

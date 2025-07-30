@@ -10,10 +10,10 @@ public class Plugin : IBlakePlugin
 {
     private static readonly PrismOptions _options = new()
     {
-        UseLineNumbers = true,
-        UseCopyButton = true,
+        UseLineNumbers      = true,
+        UseCopyButton       = true,
         UseLineHighlighting = true,
-        UseLineDiff = true
+        UseLineDiff         = true
     };
 
     public Task BeforeBakeAsync(BlakeContext context)

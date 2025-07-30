@@ -169,6 +169,16 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
 
     protected override void Write(HtmlRenderer renderer, CodeBlock node)
     {
+        Console.WriteLine("PrismCodeBlockRenderer.Write called.");
+
+        Console.WriteLine("Options:");
+        Console.WriteLine($"UseLineNumbers: {_options.UseLineNumbers}");
+        Console.WriteLine($"UseDownloadButton: {_options.UseDownloadButton}");
+        Console.WriteLine($"UseLineHighlighting: {_options.UseLineHighlighting}");
+        Console.WriteLine($"UseLineDiff: {_options.UseLineDiff}");
+        Console.WriteLine($"UseCopyButton: {_options.UseCopyButton}");
+
+
         var stringWriter = new StringWriter();
         var debugRenderer = new HtmlRenderer(stringWriter)
         {
@@ -178,25 +188,27 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
 
         if (node is not FencedCodeBlock fencedCodeBlock || node.Parser is not FencedCodeBlockParser parser)
         {
+            Console.WriteLine("Node is not a FencedCodeBlock or parser is not FencedCodeBlockParser.");
             _codeBlockRenderer.Write(renderer, node);
             return;
         }
 
         if (fencedCodeBlock.Info == null)
         {
+            Console.WriteLine("FencedCodeBlock.Info is null. Skipping Prism rendering.");
             _codeBlockRenderer.Write(renderer, node);
             return;
         }
 
-        if (parser.InfoPrefix == null || !fencedCodeBlock.Info.StartsWith(parser.InfoPrefix))
-        {
-            _codeBlockRenderer.Write(renderer, node);
-            return;
-        }
 
-        var languageCode = fencedCodeBlock!.Info!.Replace(parser.InfoPrefix, string.Empty);
-        if (string.IsNullOrWhiteSpace(languageCode) || !PrismSupportedLanguages.IsSupportedLanguage(languageCode))
+        var infoParts = fencedCodeBlock.Info.Split(' ', 2);
+        var languageCode = infoParts[0].ToLowerInvariant();
+        var arguments = infoParts.Length > 1 ? infoParts[1] : null;
+        fencedCodeBlock.Arguments = arguments;
+
+        if (string.IsNullOrWhiteSpace(languageCode) || !LanguageToFileExtension.ContainsKey(languageCode))
         {
+            Console.WriteLine($"Language code '{languageCode}' is not supported by Prism. Skipping Prism rendering.");
             _codeBlockRenderer.Write(renderer, node);
             return;
         }
@@ -206,7 +218,14 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
 
         if (_options.UseLineDiff && fencedCodeBlock.Arguments is not null)
         {
+            Console.WriteLine("Using line diff parsing because UseLineDiff is true and fencedCodeBlock.Arguments is not null.");
+
             ParseLineDiffs(fencedCodeBlock.Arguments, codeAttributes);
+        }
+        else
+        {
+            Console.WriteLine("Not using line diff parsing because UseLineDiff is false or fencedCodeBlock.Arguments is null.");
+            Console.WriteLine($"FencedCodeBlock.Arguments: {fencedCodeBlock.Arguments}");
         }
 
 

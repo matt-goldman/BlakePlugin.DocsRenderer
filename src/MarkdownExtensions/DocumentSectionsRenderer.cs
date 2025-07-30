@@ -51,7 +51,7 @@ public class DocumentSectionRenderer : HtmlObjectRenderer<HeadingBlock>
         Console.WriteLine($"[BlakePlugin.DocsRenderer] Opening section: {headingId} at level {level} with text '{headingText}'");
 
         renderer.WriteLine($"<section id=\"{headingId}\">");
-        renderer.Write($"<h{level} id=\"{headingId}\">{headingText}</h{level}>");
+        renderer.Write($"<h{level}>{headingText}</h{level}>");
     }
 
     public void CloseRemaining(HtmlRenderer renderer)
