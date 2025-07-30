@@ -1,12 +1,18 @@
 ﻿using Blake.Types;
 using BlakePlugin.DocsRenderer.Types;
-using System.Diagnostics;
 
 namespace BlakePlugin.DocsRenderer.Utils;
 
 public static class TocUtils
 {
-    public static List<TocNode> BuildSiteTocNodes(List<PageModel> pages)
+    /// <summary>
+    /// Generates a Table of Contents (TOC) for the site based on the provided pages.
+    /// </summary>
+    /// <param name="pages">The list of pages to include in the TOC.</param>
+    /// <param name="slugSegmentsToSkip">The number of slug segments to exclude from the TOC hierarchy. Defaults to 0.</param>
+    /// <returns>A <see cref="List{TocNode}"/> representing the site structure as TOC nodes.</returns>
+    /// <remarks>Note that skipped slug segments are only excluded from the TOC hierarchy, they are not removed from the actual slugs.</remarks>
+    public static List<TocNode> BuildSiteTocNodes(List<PageModel> pages, int? slugSegmentsToSkip = 0)
     {
         var root = new TocNode
         {
@@ -18,12 +24,19 @@ public static class TocUtils
 
         Console.WriteLine($"Building TOC with {pages.Count} pages.");
 
+        // Sort pages by Slug by default
         foreach (var page in pages.OrderBy(p => p.Slug))
         {
             Console.WriteLine($"Processing page: {page.Slug} - {page.Title}");
 
             var slugParts = page.Slug.Trim('/').Split('/');
+
+            if (slugSegmentsToSkip.HasValue && slugSegmentsToSkip.Value > 0)
+                slugParts = [.. slugParts.Skip(slugSegmentsToSkip.Value)];
+
             var current = root;
+
+            current.SortOrder = GetSortOrder(page);
 
             for (int i = 0; i < slugParts.Length; i++)
             {
@@ -40,18 +53,34 @@ public static class TocUtils
 
                     child = new TocNode
                     {
-                        Id = segment,
-                        Text = isLeaf ? page.Title : segment,
-                        Slug = slugPath,
-                        Children = []
+                        Id          = segment,
+                        Text        = isLeaf ? page.Title : segment,
+                        Slug        = slugPath,
+                        Children    = [],
+                        SortOrder   = isLeaf ? GetSortOrder(page) : 0
                     };
+
                     current.Children.Add(child);
                 }
 
                 current = child;
             }
+
+            current.Children.Sort((a, b) => a.SortOrder.CompareTo(b.SortOrder));
         }
 
+        root.Children.Sort((a, b) => a.SortOrder.CompareTo(b.SortOrder));
+
         return root.Children;
+    }
+
+    private static int GetSortOrder(PageModel page)
+    {
+        if (page.Metadata.TryGetValue("pageOrder", out string? value) && int.TryParse(value, out int order))
+        {
+            return order;
+        }
+        // Default sort order if not specified
+        return 0;
     }
 }
