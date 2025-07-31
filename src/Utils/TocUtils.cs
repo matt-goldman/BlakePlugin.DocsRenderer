@@ -62,11 +62,9 @@ public static class TocUtils
 
                 current = child;
             }
-
-            current.Children.Sort((a, b) => a.SortOrder.CompareTo(b.SortOrder));
         }
 
-        root.Children.Sort((a, b) => a.SortOrder.CompareTo(b.SortOrder));
+        SortTocNodes(root.Children);
 
         return root.Children;
     }
@@ -75,9 +73,24 @@ public static class TocUtils
     {
         if (page.Metadata.TryGetValue("pageOrder", out string? value) && int.TryParse(value, out int order))
         {
+            Console.WriteLine($"Page {page.Slug} has custom sort order: {order}");
             return order;
+        }
+        else
+        {
+            Console.WriteLine($"Page {page.Slug} has no custom sort order, using default.");
+            Console.WriteLine($"Metadata: {string.Join(", ", page.Metadata.Select(kv => $"{kv.Key}: {kv.Value}"))}");
         }
         // Default sort order if not specified
         return 0;
+    }
+
+    private static void SortTocNodes(List<TocNode> nodes)
+    {
+        nodes.Sort((a, b) => a.SortOrder.CompareTo(b.SortOrder));
+        foreach (var node in nodes)
+        {
+            SortTocNodes(node.Children);
+        }
     }
 }
