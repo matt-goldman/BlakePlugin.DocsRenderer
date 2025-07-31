@@ -12,7 +12,7 @@ public static class TocUtils
     /// <param name="slugSegmentsToSkip">The number of slug segments to exclude from the TOC hierarchy. Defaults to 0.</param>
     /// <returns>A <see cref="List{TocNode}"/> representing the site structure as TOC nodes.</returns>
     /// <remarks>Note that skipped slug segments are only excluded from the TOC hierarchy, they are not removed from the actual slugs.</remarks>
-    public static List<TocNode> BuildSiteTocNodes(List<PageModel> pages, int? slugSegmentsToSkip = 0)
+    public static List<TocNode> BuildSiteTocNodes(List<PageModel> pages)
     {
         var root = new TocNode
         {
@@ -30,9 +30,6 @@ public static class TocUtils
             Console.WriteLine($"Processing page: {page.Slug} - {page.Title}");
 
             var slugParts = page.Slug.Trim('/').Split('/');
-
-            if (slugSegmentsToSkip.HasValue && slugSegmentsToSkip.Value > 0)
-                slugParts = [.. slugParts.Skip(slugSegmentsToSkip.Value)];
 
             var current = root;
 
