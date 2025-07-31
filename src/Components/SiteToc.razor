@@ -1,31 +1,23 @@
 @using BlakePlugin.DocsRenderer.Types
 @using Microsoft.AspNetCore.Components.Routing
-<div class="bdr-sidebar bg-light border-end p-3 d-none d-lg-block bdr-left-sidebar">
-    <h5>@Title</h5>
-    <nav id="bdr-site-toc" class="bdr-site-toc nav flex-column">
-        @foreach (var node in Nodes)
-        {
-            var expanded = IsExpanded(node);
-            var active = IsActive(node);
+<nav class="col-lg-2 col-md-3 bdr-sidebar bg-dark border-end">
+    <div class="p-3">
+        <div class="nav flex-column bdr-toc">
 
-            var navLinkClass = active ? "nav-link active" : "nav-link";
-
-            <div class="module">
-                <a class="nav-link bdr-node-title" href="#" data-bs-toggle="collapse" data-bs-target="#module-@node.Id">
-                    <span class="bi @(expanded ? "bi-chevron-down" : "bi-chevron-right") me-2"></span>@node.Text
-                </a>
-                <div id="module-@node.Id" class="collapse @(expanded ? "show" : "") ps-2" >
-                    <nav class="nav flex-column bdr-module-pages">
-                        @foreach (var child in node.Children)
-                        {
-                            <NavLink class="@navLinkClass" href="@child.Slug" data-page-id="@child.Id">@child.Text</NavLink>
-                        }
-                    </nav>
-                </div>
-            </div>
-        }
-    </nav>
-</div>
+            @foreach (var node in Nodes)
+            {
+                <h6 class="text-muted text-uppercase small fw-bold mt-3 mb-2">@node.Text</h6>
+                @foreach (var child in node.Children)
+                {
+                    var styleClass = $"bdr-nav-link {(IsActive(child) ? "active" : "")}";
+                    <NavLink href="@child.Slug" class="@styleClass">
+                        @child.Text
+                    </NavLink>
+                }
+            }
+        </div>
+    </div>
+</nav>
 
 @code {
     [Parameter]
