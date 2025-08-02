@@ -1,7 +1,7 @@
 ﻿using Blake.BuildTools;
 using BlakePlugin.DocsRenderer.MarkdownExtensions;
 using BlakePlugin.DocsRenderer.Types;
-using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using System.Text;
 
 namespace BlakePlugin.DocsRenderer;
@@ -16,34 +16,35 @@ public class Plugin : IBlakePlugin
         UseLineDiff         = true
     };
 
-    public Task BeforeBakeAsync(BlakeContext context)
+    public Task BeforeBakeAsync(BlakeContext context, ILogger? logger = null)
     {
         // This method is called before the bake process starts
         // You can add any pre-bake logic here if needed
 
-        Console.WriteLine("[BlakePlugin.DocsRenderer] BeforeBakeAsync called.");
+        logger?.LogInformation("[BlakePlugin.DocsRenderer] BeforeBakeAsync called.");
 
         context.PipelineBuilder
-            .UsePrism(_options)
-            .UseDocumentSections();
+            .UsePrism(_options, logger)
+            .UseDocumentSections(logger);
 
         return Task.CompletedTask;
     }
 
-    public Task AfterBakeAsync(BlakeContext context)
+    public Task AfterBakeAsync(BlakeContext context, ILogger? logger = null)
     {
-        Console.WriteLine("[BlakePlugin.DocsRenderer] AfterBakeAsync called.");
+        // This method is called after the bake process completes
+        logger?.LogInformation("[BlakePlugin.DocsRenderer] AfterBakeAsync called.");
 
         foreach (var page in context.GeneratedPages.ToList())
         {
             if (string.IsNullOrWhiteSpace(page.RazorHtml))
                 continue;
 
-            Console.WriteLine($"Processing page: {page.Page.Title} ({page.Page.Slug})");
+            logger?.LogInformation("Processing page: {Title} ({Slug})", page.Page.Title, page.Page.Slug);
 
             if (page.RazorHtml.Contains("<!-- blake:sections:"))
             {
-                Console.WriteLine($"Found sections in page: {page.Page.Title} ({page.Page.Slug})");
+                logger?.LogInformation("Found sections in page: {Title} ({Slug})", page.Page.Title, page.Page.Slug);
 
                 var sectionsJson = page.RazorHtml
                     .Split("<!-- blake:sections:")[1]
@@ -54,11 +55,11 @@ public class Plugin : IBlakePlugin
 
                 if (sections == null || sections.Count == 0)
                 {
-                    Console.WriteLine($"No sections found in page: {page.Page.Title} ({page.Page.Slug})");
+                    logger?.LogInformation("No sections found in page: {Title} ({Slug})", page.Page.Title, page.Page.Slug);
                     continue; // No sections found, skip processing
                 }
 
-                Console.WriteLine($"Found {sections.Count} sections in page: {page.Page.Title} ({page.Page.Slug})");
+                logger?.LogInformation("Found {Count} sections in page: {Title} ({Slug})", sections.Count, page.Page.Title, page.Page.Slug);
 
                 var staticSectionList = GetStaticSectionList(sections);
 
@@ -69,17 +70,17 @@ public class Plugin : IBlakePlugin
                 // add the using statement to the top of the RazorHtml if not already present
                 if (!updatedHtml.Contains("using BlakePlugin.DocsRenderer.Types;"))
                 {
-                    Console.WriteLine("Adding using statement for BlakePlugin.DocsRenderer.Types.");
+                    logger?.LogInformation("Adding using statement for BlakePlugin.DocsRenderer.Types.");
                     updatedHtml = $"@using BlakePlugin.DocsRenderer.Types;{Environment.NewLine}{updatedHtml}";
                 }
                 else
                 {
-                    Console.WriteLine("Using statement for BlakePlugin.DocsRenderer.Types already present.");
+                    logger?.LogInformation("Using statement for BlakePlugin.DocsRenderer.Types already present.");
                 }
 
                 if (updatedHtml.Contains("@code"))
                 {
-                    Console.WriteLine("Found existing @code block in RazorHtml.");
+                    logger?.LogInformation("Found existing @code block in RazorHtml.");
                     // Find the last closing brace of the @code block
                     var lastBraceIndex = updatedHtml.LastIndexOf('}');
 
@@ -91,12 +92,12 @@ public class Plugin : IBlakePlugin
                     else
                     {
                         // malformed RazorHtml, skip and log an error
-                        Console.WriteLine($"Error: Could not find a valid @code block in the RazorHtml in page {page.Page.Title}.");
+                        logger?.LogWarning("Could not find a valid @code block in the RazorHtml in page {Title}.", page.Page.Title);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("No existing @code block found in RazorHtml.");
+                    logger?.LogInformation("No existing @code block found in RazorHtml.");
                     // If no @code block found, append the static section list at the end
                     updatedHtml += $"{Environment.NewLine}@code{Environment.NewLine}{{{Environment.NewLine}{staticSectionList}{Environment.NewLine}}}";
                 }

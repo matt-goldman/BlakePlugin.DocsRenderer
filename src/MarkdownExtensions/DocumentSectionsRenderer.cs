@@ -2,11 +2,12 @@
 using Markdig.Renderers;
 using Markdig.Renderers.Html;
 using Markdig.Syntax;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
 namespace BlakePlugin.DocsRenderer.MarkdownExtensions;
 
-public class DocumentSectionRenderer : HtmlObjectRenderer<HeadingBlock>
+public class DocumentSectionRenderer(ILogger? logger = null) : HtmlObjectRenderer<HeadingBlock>
 {
     private readonly Stack<(Section section, int level)> _stack = new();
     private readonly List<Section> _sections = [];
@@ -15,15 +16,14 @@ public class DocumentSectionRenderer : HtmlObjectRenderer<HeadingBlock>
 
     protected override void Write(HtmlRenderer renderer, HeadingBlock block)
     {
-        Console.WriteLine($"[BlakePlugin.DocsRenderer] Rendering heading: {block.Level} - {block.Inline?.ToString() ?? "null"}");
+        logger?.LogDebug("[BlakePlugin.DocsRenderer] Rendering heading: {Level} - {heading}", block.Level, block.Inline?.ToString() ?? "null");
+
         if (block.Inline == null || block.Inline.Count() == 0)
         {
-            Console.WriteLine("[BlakePlugin.DocsRenderer] Skipping empty heading block.");
+            logger?.LogDebug("[BlakePlugin.DocsRenderer] Skipping empty heading block.");
             return; // Skip empty headings
         }
-
-        Debug.Assert(block.Inline != null, "HeadingBlock should have Inline content.");
-        
+                
         var headingText = block.Inline?.FirstChild?.ToString() ?? "";
         var headingId = headingText.ToLowerInvariant().Replace(" ", "-");
 
@@ -32,7 +32,7 @@ public class DocumentSectionRenderer : HtmlObjectRenderer<HeadingBlock>
 
         while (_stack.Count > 0 && _stack.Peek().level >= level)
         {
-            Console.WriteLine($"[BlakePlugin.DocsRenderer] Closing section: {_stack.Peek().section.Id} at level {_stack.Peek().level}");
+            logger?.LogDebug("[BlakePlugin.DocsRenderer] Closing section: {sectionId} at level {level}", _stack.Peek().section.Id, _stack.Peek().level);
             _stack.Pop();
             renderer.WriteLine("</section>");
         }
@@ -48,7 +48,7 @@ public class DocumentSectionRenderer : HtmlObjectRenderer<HeadingBlock>
 
         _stack.Push((newSection, level));
 
-        Console.WriteLine($"[BlakePlugin.DocsRenderer] Opening section: {headingId} at level {level} with text '{headingText}'");
+        logger?.LogDebug("[BlakePlugin.DocsRenderer] Opening section: {headingId} at level {level} with text '{headingText}'", headingId, level, headingText);
 
         renderer.WriteLine($"<section id=\"{headingId}\">");
         renderer.Write($"<h{level}>{headingText}</h{level}>");
@@ -56,7 +56,7 @@ public class DocumentSectionRenderer : HtmlObjectRenderer<HeadingBlock>
 
     public void CloseRemaining(HtmlRenderer renderer)
     {
-        Console.WriteLine("[BlakePlugin.DocsRenderer] Closing remaining sections.");
+        logger?.LogDebug("[BlakePlugin.DocsRenderer] Closing remaining sections.");
 
         while (_stack.Count > 0)
         {
@@ -64,12 +64,12 @@ public class DocumentSectionRenderer : HtmlObjectRenderer<HeadingBlock>
             _stack.Pop();
         }
 
-        Console.WriteLine("[BlakePlugin.DocsRenderer] All sections closed.");
+        logger?.LogDebug("[BlakePlugin.DocsRenderer] All sections closed.");
 
         var sectionJson = System.Text.Json.JsonSerializer.Serialize(_sections);
         renderer.WriteLine($"<!-- blake:sections:{sectionJson} -->");
 
-        Console.WriteLine("[BlakePlugin.DocsRenderer] Sections JSON written to renderer."); 
+        logger?.LogDebug("[BlakePlugin.DocsRenderer] Sections JSON written to renderer."); 
     }
 }
 

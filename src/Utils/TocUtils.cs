@@ -22,13 +22,9 @@ public static class TocUtils
             Children = []
         };
 
-        Console.WriteLine($"Building TOC with {pages.Count} pages.");
-
         // Sort pages by Slug by default
         foreach (var page in pages.OrderBy(p => p.Slug))
         {
-            Console.WriteLine($"Processing page: {page.Slug} - {page.Title}");
-
             var slugParts = page.Slug.Trim('/').Split('/');
 
             var current = root;
@@ -46,8 +42,6 @@ public static class TocUtils
 
                 if (child == null)
                 {
-                    Console.WriteLine($"Creating new TOC node: {segment} (isLeaf: {isLeaf})");
-
                     child = new TocNode
                     {
                         Id          = segment,
@@ -73,14 +67,9 @@ public static class TocUtils
     {
         if (page.Metadata.TryGetValue("pageOrder", out string? value) && int.TryParse(value, out int order))
         {
-            Console.WriteLine($"Page {page.Slug} has custom sort order: {order}");
             return order;
         }
-        else
-        {
-            Console.WriteLine($"Page {page.Slug} has no custom sort order, using default.");
-            Console.WriteLine($"Metadata: {string.Join(", ", page.Metadata.Select(kv => $"{kv.Key}: {kv.Value}"))}");
-        }
+
         // Default sort order if not specified
         return 0;
     }

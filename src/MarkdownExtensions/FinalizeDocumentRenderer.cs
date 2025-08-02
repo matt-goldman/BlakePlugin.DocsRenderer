@@ -1,19 +1,19 @@
 ﻿using Markdig.Renderers;
 using Markdig.Renderers.Html;
 using Markdig.Syntax;
-using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace BlakePlugin.DocsRenderer.MarkdownExtensions;
 
-public class FinalizingDocumentRenderer(DocumentSectionRenderer sectionRenderer) : HtmlObjectRenderer<MarkdownDocument>
+public class FinalizingDocumentRenderer(DocumentSectionRenderer sectionRenderer, ILogger? logger = null) : HtmlObjectRenderer<MarkdownDocument>
 {
     protected override void Write(HtmlRenderer renderer, MarkdownDocument document)
     {
-        Console.WriteLine("[BlakePlugin.DocsRenderer] Finalizing document rendering.");
+        logger?.LogDebug("[BlakePlugin.DocsRenderer] Finalizing document rendering.");
 
         foreach (var block in document)
         {
-            Console.WriteLine($"[BlakePlugin.DocsRenderer] Processing block: {block.GetType().Name}");
+            logger?.LogDebug("[BlakePlugin.DocsRenderer] Processing block: {Name}", block.GetType().Name);
 
             renderer.Write(block); // delegate to existing block renderers
         }

@@ -1,10 +1,11 @@
 using Markdig;
 using Markdig.Renderers;
 using Markdig.Renderers.Html;
+using Microsoft.Extensions.Logging;
 
 namespace BlakePlugin.DocsRenderer.MarkdownExtensions;
 
-public class PrismExtension(PrismOptions options) : IMarkdownExtension
+public class PrismExtension(PrismOptions options, ILogger? logger = null) : IMarkdownExtension
 {
 
     public void Setup(MarkdownPipelineBuilder pipeline)
@@ -24,7 +25,7 @@ public class PrismExtension(PrismOptions options) : IMarkdownExtension
                 htmlRenderer.ObjectRenderers.Remove(codeBlockRenderer);
             }
 
-            htmlRenderer.ObjectRenderers.AddIfNotAlready(new PrismCodeBlockRenderer(codeBlockRenderer!, options));
+            htmlRenderer.ObjectRenderers.AddIfNotAlready(new PrismCodeBlockRenderer(codeBlockRenderer!, options, logger));
         }
     }
 }

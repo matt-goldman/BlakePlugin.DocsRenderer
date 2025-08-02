@@ -4,10 +4,11 @@ using Markdig.Parsers;
 using Markdig.Renderers;
 using Markdig.Renderers.Html;
 using Markdig.Syntax;
+using Microsoft.Extensions.Logging;
 
 namespace BlakePlugin.DocsRenderer.MarkdownExtensions;
 
-public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOptions options) : HtmlObjectRenderer<CodeBlock>
+public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOptions options, ILogger? logger = null) : HtmlObjectRenderer<CodeBlock>
 {
     private readonly CodeBlockRenderer _codeBlockRenderer = codeBlockRenderer ?? new CodeBlockRenderer();
     // Adding options to the renderer
@@ -169,14 +170,14 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
 
     protected override void Write(HtmlRenderer renderer, CodeBlock node)
     {
-        Console.WriteLine("PrismCodeBlockRenderer.Write called.");
+        logger?.LogDebug("PrismCodeBlockRenderer.Write called.");
 
-        Console.WriteLine("Options:");
-        Console.WriteLine($"UseLineNumbers: {_options.UseLineNumbers}");
-        Console.WriteLine($"UseDownloadButton: {_options.UseDownloadButton}");
-        Console.WriteLine($"UseLineHighlighting: {_options.UseLineHighlighting}");
-        Console.WriteLine($"UseLineDiff: {_options.UseLineDiff}");
-        Console.WriteLine($"UseCopyButton: {_options.UseCopyButton}");
+        logger?.LogDebug("Options:");
+        logger?.LogDebug("UseLineNumbers: {UseLineNumbers}", _options.UseLineNumbers);
+        logger?.LogDebug("UseDownloadButton: {UseDownloadButton}", _options.UseDownloadButton);
+        logger?.LogDebug("UseLineHighlighting: {UseLineHighlighting}", _options.UseLineHighlighting);
+        logger?.LogDebug("UseLineDiff: {UseLineDiff}", _options.UseLineDiff);
+        logger?.LogDebug("UseCopyButton: {UseCopyButton}", _options.UseCopyButton);
 
 
         var stringWriter = new StringWriter();
@@ -188,14 +189,14 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
 
         if (node is not FencedCodeBlock fencedCodeBlock || node.Parser is not FencedCodeBlockParser parser)
         {
-            Console.WriteLine("Node is not a FencedCodeBlock or parser is not FencedCodeBlockParser.");
+            logger?.LogDebug("Node is not a FencedCodeBlock or parser is not FencedCodeBlockParser.");
             _codeBlockRenderer.Write(renderer, node);
             return;
         }
 
         if (fencedCodeBlock.Info == null)
         {
-            Console.WriteLine("FencedCodeBlock.Info is null. Skipping Prism rendering.");
+            logger?.LogDebug("FencedCodeBlock.Info is null. Skipping Prism rendering.");
             _codeBlockRenderer.Write(renderer, node);
             return;
         }
@@ -208,7 +209,7 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
 
         if (string.IsNullOrWhiteSpace(languageCode) || !LanguageToFileExtension.ContainsKey(languageCode))
         {
-            Console.WriteLine($"Language code '{languageCode}' is not supported by Prism. Skipping Prism rendering.");
+            logger?.LogDebug("Language code '{languageCode}' is not supported by Prism. Skipping Prism rendering.", languageCode);
             _codeBlockRenderer.Write(renderer, node);
             return;
         }
@@ -218,14 +219,14 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
 
         if (_options.UseLineDiff && fencedCodeBlock.Arguments is not null)
         {
-            Console.WriteLine("Using line diff parsing because UseLineDiff is true and fencedCodeBlock.Arguments is not null.");
+            logger?.LogDebug("Using line diff parsing because UseLineDiff is true and fencedCodeBlock.Arguments is not null.");
 
             ParseLineDiffs(fencedCodeBlock.Arguments, codeAttributes);
         }
         else
         {
-            Console.WriteLine("Not using line diff parsing because UseLineDiff is false or fencedCodeBlock.Arguments is null.");
-            Console.WriteLine($"FencedCodeBlock.Arguments: {fencedCodeBlock.Arguments}");
+            logger?.LogDebug("Not using line diff parsing because UseLineDiff is false or fencedCodeBlock.Arguments is null.");
+            logger?.LogDebug("FencedCodeBlock.Arguments: {args}", fencedCodeBlock.Arguments);
         }
 
 
