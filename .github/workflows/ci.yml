@@ -48,7 +48,7 @@ jobs:
           dotnet pack src/BlakePlugin.DocsRenderer.csproj \
             --configuration Release \
             --no-build \
-            -p:PackageVersion=$${{ needs.generate-version.outputs.new_version }} \
+            -p:PackageVersion=${{ needs.generate-version.outputs.new_version }} \
             -o packages
 
       - name: Push to NuGet
