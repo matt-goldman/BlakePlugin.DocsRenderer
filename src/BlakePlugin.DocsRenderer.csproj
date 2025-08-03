@@ -42,7 +42,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.7" />
-		<PackageReference Include="Blake.BuildTools" Version="1.0.7" />
+		<PackageReference Include="Blake.BuildTools" Version="1.0.10" />
 	</ItemGroup>
 
 </Project>
