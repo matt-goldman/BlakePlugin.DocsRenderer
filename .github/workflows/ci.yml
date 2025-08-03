@@ -29,6 +29,7 @@ jobs:
       new_version: ${{ steps.tag_bump.outputs.new_tag }}
 
   build:
+    needs: generate-version
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
