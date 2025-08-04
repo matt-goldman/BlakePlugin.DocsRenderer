@@ -8,12 +8,12 @@ namespace BlakePlugin.DocsRenderer;
 
 public class Plugin : IBlakePlugin
 {
-    private static readonly PrismOptions _options = new()
+    private static readonly PrismOptions Options = new()
     {
-        UseLineNumbers      = true,
-        UseCopyButton       = true,
+        UseLineNumbers = true,
+        UseCopyButton = true,
         UseLineHighlighting = true,
-        UseLineDiff         = true
+        UseLineDiff = true
     };
 
     public Task BeforeBakeAsync(BlakeContext context, ILogger? logger = null)
@@ -24,7 +24,7 @@ public class Plugin : IBlakePlugin
         logger?.LogInformation("[BlakePlugin.DocsRenderer] BeforeBakeAsync called.");
 
         context.PipelineBuilder
-            .UsePrism(_options, logger)
+            .UsePrism(Options, logger)
             .UseDocumentSections(logger);
 
         return Task.CompletedTask;
@@ -35,79 +35,81 @@ public class Plugin : IBlakePlugin
         // This method is called after the bake process completes
         logger?.LogInformation("[BlakePlugin.DocsRenderer] AfterBakeAsync called.");
 
-        foreach (var page in context.GeneratedPages.ToList())
+        foreach (var page in context.GeneratedPages.ToList().Where(page => !string.IsNullOrWhiteSpace(page.RazorHtml)))
         {
-            if (string.IsNullOrWhiteSpace(page.RazorHtml))
-                continue;
-
             logger?.LogInformation("Processing page: {Title} ({Slug})", page.Page.Title, page.Page.Slug);
 
             if (page.RazorHtml.Contains("<!-- blake:sections:"))
             {
-                logger?.LogInformation("Found sections in page: {Title} ({Slug})", page.Page.Title, page.Page.Slug);
-
-                var sectionsJson = page.RazorHtml
-                    .Split("<!-- blake:sections:")[1]
-                    .Split("-->")[0]
-                    .Trim();
-
-                var sections = System.Text.Json.JsonSerializer.Deserialize<List<Section>>(sectionsJson);
-
-                if (sections == null || sections.Count == 0)
-                {
-                    logger?.LogInformation("No sections found in page: {Title} ({Slug})", page.Page.Title, page.Page.Slug);
-                    continue; // No sections found, skip processing
-                }
-
-                logger?.LogInformation("Found {Count} sections in page: {Title} ({Slug})", sections.Count, page.Page.Title, page.Page.Slug);
-
-                var staticSectionList = GetStaticSectionList(sections);
-
-                var updatedHtml = page.RazorHtml
-                    .Replace($"<!-- blake:sections:{sectionsJson} -->", string.Empty)
-                    .Trim();
-
-                // add the using statement to the top of the RazorHtml if not already present
-                if (!updatedHtml.Contains("using BlakePlugin.DocsRenderer.Types;"))
-                {
-                    logger?.LogInformation("Adding using statement for BlakePlugin.DocsRenderer.Types.");
-                    updatedHtml = $"@using BlakePlugin.DocsRenderer.Types;{Environment.NewLine}{updatedHtml}";
-                }
-                else
-                {
-                    logger?.LogInformation("Using statement for BlakePlugin.DocsRenderer.Types already present.");
-                }
-
-                if (updatedHtml.Contains("@code"))
-                {
-                    logger?.LogInformation("Found existing @code block in RazorHtml.");
-                    // Find the last closing brace of the @code block
-                    var lastBraceIndex = updatedHtml.LastIndexOf('}');
-
-                    if (lastBraceIndex >= 0)
-                    {
-                        // Insert the static section list before the last closing brace
-                        updatedHtml = updatedHtml.Insert(lastBraceIndex, $"{Environment.NewLine}{staticSectionList}");
-                    }
-                    else
-                    {
-                        // malformed RazorHtml, skip and log an error
-                        logger?.LogWarning("Could not find a valid @code block in the RazorHtml in page {Title}.", page.Page.Title);
-                    }
-                }
-                else
-                {
-                    logger?.LogInformation("No existing @code block found in RazorHtml.");
-                    // If no @code block found, append the static section list at the end
-                    updatedHtml += $"{Environment.NewLine}@code{Environment.NewLine}{{{Environment.NewLine}{staticSectionList}{Environment.NewLine}}}";
-                }
-
-                var updatedPage = new GeneratedPage(page.Page, page.OutputPath, updatedHtml);
-                context.GeneratedPages[context.GeneratedPages.IndexOf(page)] = updatedPage;
+                AddDocumentSections(page, context, logger);
             }
         }
 
         return Task.CompletedTask;
+    }
+
+    private static void AddDocumentSections(GeneratedPage page, BlakeContext context, ILogger? logger)
+    {
+        logger?.LogInformation("Found sections in page: {Title} ({Slug})", page.Page.Title, page.Page.Slug);
+
+        var sectionsJson = page.RazorHtml
+            .Split("<!-- blake:sections:")[1]
+            .Split("-->")[0]
+            .Trim();
+
+        var sections = System.Text.Json.JsonSerializer.Deserialize<List<Section>>(sectionsJson);
+
+        if (sections == null || sections.Count == 0)
+        {
+            logger?.LogInformation("No sections found in page: {Title} ({Slug})", page.Page.Title, page.Page.Slug);
+            return; // No sections found, skip processing
+        }
+
+        logger?.LogInformation("Found {Count} sections in page: {Title} ({Slug})", sections.Count, page.Page.Title, page.Page.Slug);
+
+        var staticSectionList = GetStaticSectionList(sections);
+
+        var updatedHtml = page.RazorHtml
+            .Replace($"<!-- blake:sections:{sectionsJson} -->", string.Empty)
+            .Trim();
+
+        // add the using statement to the top of the RazorHtml if not already present
+        if (!updatedHtml.Contains("using BlakePlugin.DocsRenderer.Types;"))
+        {
+            logger?.LogInformation("Adding using statement for BlakePlugin.DocsRenderer.Types.");
+            updatedHtml = $"@using BlakePlugin.DocsRenderer.Types;{Environment.NewLine}{updatedHtml}";
+        }
+        else
+        {
+            logger?.LogInformation("Using statement for BlakePlugin.DocsRenderer.Types already present.");
+        }
+
+        if (updatedHtml.Contains("@code"))
+        {
+            logger?.LogInformation("Found existing @code block in RazorHtml.");
+            // Find the last closing brace of the @code block
+            var lastBraceIndex = updatedHtml.LastIndexOf('}');
+
+            if (lastBraceIndex >= 0)
+            {
+                // Insert the static section list before the last closing brace
+                updatedHtml = updatedHtml.Insert(lastBraceIndex, $"{Environment.NewLine}{staticSectionList}");
+            }
+            else
+            {
+                // malformed RazorHtml, skip and log an error
+                logger?.LogWarning("Could not find a valid @code block in the RazorHtml in page {Title}.", page.Page.Title);
+            }
+        }
+        else
+        {
+            logger?.LogInformation("No existing @code block found in RazorHtml.");
+            // If no @code block found, append the static section list at the end
+            updatedHtml += $"{Environment.NewLine}@code{Environment.NewLine}{{{Environment.NewLine}{staticSectionList}{Environment.NewLine}}}";
+        }
+
+        var updatedPage = new GeneratedPage(page.Page, page.OutputPath, updatedHtml);
+        context.GeneratedPages[context.GeneratedPages.IndexOf(page)] = updatedPage;
     }
 
     private static string GetStaticSectionList(IEnumerable<Section> sections)
