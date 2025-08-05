@@ -53,6 +53,10 @@ public class Plugin : IBlakePlugin
 
                 var sections = System.Text.Json.JsonSerializer.Deserialize<List<Section>>(sectionsJson) ?? [];
 
+                if (sections.Count == 0)
+                {
+                    logger?.LogInformation("No sections found in page: {Title} ({Slug}).", page.Page.Title, page.Page.Slug);
+                }
                 logger?.LogInformation("Found {Count} sections in page: {Title} ({Slug})", sections.Count, page.Page.Title, page.Page.Slug);
 
                 var staticSectionList = GetStaticSectionList(sections);
