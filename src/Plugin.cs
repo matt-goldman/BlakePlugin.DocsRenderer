@@ -51,13 +51,7 @@ public class Plugin : IBlakePlugin
                     .Split("-->")[0]
                     .Trim();
 
-                var sections = System.Text.Json.JsonSerializer.Deserialize<List<Section>>(sectionsJson);
-
-                if (sections == null || sections.Count == 0)
-                {
-                    logger?.LogInformation("No sections found in page: {Title} ({Slug})", page.Page.Title, page.Page.Slug);
-                    continue; // No sections found, skip processing
-                }
+                var sections = System.Text.Json.JsonSerializer.Deserialize<List<Section>>(sectionsJson) ?? [];
 
                 logger?.LogInformation("Found {Count} sections in page: {Title} ({Slug})", sections.Count, page.Page.Title, page.Page.Slug);
 
@@ -67,40 +61,18 @@ public class Plugin : IBlakePlugin
                     .Replace($"<!-- blake:sections:{sectionsJson} -->", string.Empty)
                     .Trim();
 
-                // add the using statement to the top of the RazorHtml if not already present
-                if (!updatedHtml.Contains("using BlakePlugin.DocsRenderer.Types;"))
-                {
-                    logger?.LogInformation("Adding using statement for BlakePlugin.DocsRenderer.Types.");
-                    updatedHtml = $"@using BlakePlugin.DocsRenderer.Types;{Environment.NewLine}{updatedHtml}";
-                }
-                else
-                {
-                    logger?.LogInformation("Using statement for BlakePlugin.DocsRenderer.Types already present.");
-                }
+                updatedHtml = AddSectionsToPage(updatedHtml, staticSectionList, page.Page.Title, logger);
 
-                if (updatedHtml.Contains("@code"))
-                {
-                    logger?.LogInformation("Found existing @code block in RazorHtml.");
-                    // Find the last closing brace of the @code block
-                    var lastBraceIndex = updatedHtml.LastIndexOf('}');
-
-                    if (lastBraceIndex >= 0)
-                    {
-                        // Insert the static section list before the last closing brace
-                        updatedHtml = updatedHtml.Insert(lastBraceIndex, $"{Environment.NewLine}{staticSectionList}");
-                    }
-                    else
-                    {
-                        // malformed RazorHtml, skip and log an error
-                        logger?.LogWarning("Could not find a valid @code block in the RazorHtml in page {Title}.", page.Page.Title);
-                    }
-                }
-                else
-                {
-                    logger?.LogInformation("No existing @code block found in RazorHtml.");
-                    // If no @code block found, append the static section list at the end
-                    updatedHtml += $"{Environment.NewLine}@code{Environment.NewLine}{{{Environment.NewLine}{staticSectionList}{Environment.NewLine}}}";
-                }
+                var updatedPage = new GeneratedPage(page.Page, page.OutputPath, updatedHtml);
+                context.GeneratedPages[context.GeneratedPages.IndexOf(page)] = updatedPage;
+            }
+            else
+            {
+                // No sections found, but we still need to add an empty _sections list
+                logger?.LogInformation("No sections found in page: {Title} ({Slug}). Adding empty sections list.", page.Page.Title, page.Page.Slug);
+                
+                var staticSectionList = GetStaticSectionList([]);
+                var updatedHtml = AddSectionsToPage(page.RazorHtml, staticSectionList, page.Page.Title, logger);
 
                 var updatedPage = new GeneratedPage(page.Page, page.OutputPath, updatedHtml);
                 context.GeneratedPages[context.GeneratedPages.IndexOf(page)] = updatedPage;
@@ -108,6 +80,48 @@ public class Plugin : IBlakePlugin
         }
 
         return Task.CompletedTask;
+    }
+
+    private static string AddSectionsToPage(string razorHtml, string staticSectionList, string pageTitle, ILogger? logger)
+    {
+        var updatedHtml = razorHtml;
+
+        // add the using statement to the top of the RazorHtml if not already present
+        if (!updatedHtml.Contains("using BlakePlugin.DocsRenderer.Types;"))
+        {
+            logger?.LogInformation("Adding using statement for BlakePlugin.DocsRenderer.Types.");
+            updatedHtml = $"@using BlakePlugin.DocsRenderer.Types;{Environment.NewLine}{updatedHtml}";
+        }
+        else
+        {
+            logger?.LogInformation("Using statement for BlakePlugin.DocsRenderer.Types already present.");
+        }
+
+        if (updatedHtml.Contains("@code"))
+        {
+            logger?.LogInformation("Found existing @code block in RazorHtml.");
+            // Find the last closing brace of the @code block
+            var lastBraceIndex = updatedHtml.LastIndexOf('}');
+
+            if (lastBraceIndex >= 0)
+            {
+                // Insert the static section list before the last closing brace
+                updatedHtml = updatedHtml.Insert(lastBraceIndex, $"{Environment.NewLine}{staticSectionList}");
+            }
+            else
+            {
+                // malformed RazorHtml, skip and log an error
+                logger?.LogWarning("Could not find a valid @code block in the RazorHtml in page {Title}.", pageTitle);
+            }
+        }
+        else
+        {
+            logger?.LogInformation("No existing @code block found in RazorHtml.");
+            // If no @code block found, append the static section list at the end
+            updatedHtml += $"{Environment.NewLine}@code{Environment.NewLine}{{{Environment.NewLine}{staticSectionList}{Environment.NewLine}}}";
+        }
+
+        return updatedHtml;
     }
 
     private static string GetStaticSectionList(IEnumerable<Section> sections)
