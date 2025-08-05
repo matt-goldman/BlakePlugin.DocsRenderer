@@ -11,6 +11,9 @@ public class FinalizingDocumentRenderer(DocumentSectionRenderer sectionRenderer,
     {
         logger?.LogDebug("[BlakePlugin.DocsRenderer] Finalizing document rendering.");
 
+        // Reset the section renderer state for each new document
+        sectionRenderer.Reset();
+
         foreach (var block in document)
         {
             logger?.LogDebug("[BlakePlugin.DocsRenderer] Processing block: {Name}", block.GetType().Name);

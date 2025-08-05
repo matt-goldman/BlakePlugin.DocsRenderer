@@ -14,6 +14,13 @@ public class DocumentSectionRenderer(ILogger? logger = null) : HtmlObjectRendere
 
     public IReadOnlyList<Section> Sections => _sections;
 
+    public void Reset()
+    {
+        logger?.LogDebug("[BlakePlugin.DocsRenderer] Resetting DocumentSectionRenderer state.");
+        _stack.Clear();
+        _sections.Clear();
+    }
+
     protected override void Write(HtmlRenderer renderer, HeadingBlock block)
     {
         logger?.LogDebug("[BlakePlugin.DocsRenderer] Rendering heading: {Level} - {heading}", block.Level, block.Inline?.ToString() ?? "null");
