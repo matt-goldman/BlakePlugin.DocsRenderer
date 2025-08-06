@@ -1,40 +1,38 @@
 ﻿@using BlakePlugin.DocsRenderer.Types
-<aside class="col-lg-2 col-md-3 bdr-sidebar bg-dark border-start">
-    <div class="p-3 bdr-toc">
-        <h6 class="text-muted text-uppercase small fw-bold mb-3">On This Page</h6>
-        <nav class="nav flex-column">
+<div class="bdr-toc">
+    <h6 class="text-muted text-uppercase small fw-bold mb-3">On This Page</h6>
+    <nav class="nav flex-column">
 
-            @foreach (var pageSection in PageSections)
+        @foreach (var pageSection in PageSections)
+        {
+            <a href="@($"#{pageSection.Id}")" class="bdr-toc-link">
+                @pageSection.Text
+            </a>
+            @if (pageSection.Children != null && pageSection.Children.Count > 0)
             {
-                <a href="@($"#{pageSection.Id}")" class="bdr-toc-link">
-                    @pageSection.Text
-                </a>
-                @if (pageSection.Children != null && pageSection.Children.Count > 0)
-                {
-                    <div class="ms-3">
-                        @foreach (var child in pageSection.Children)
-                        {
-                            <a href="#@child.Id" class="bdr-toc-link">
-                                @child.Text
-                            </a>
-                        }
-                    </div>
-                }
+                <div class="ms-3">
+                    @foreach (var child in pageSection.Children)
+                    {
+                        <a href="#@child.Id" class="bdr-toc-link">
+                            @child.Text
+                        </a>
+                    }
+                </div>
             }
-        </nav>
+        }
+    </nav>
 
-        <hr class="my-4">
+    <hr class="my-4">
 
-        <div class="mb-3">
-            <h6 class="text-muted text-uppercase small fw-bold mb-2">Quick Links</h6>
+    <div class="mb-3">
+        <h6 class="text-muted text-uppercase small fw-bold mb-2">Quick Links</h6>
 
-            @foreach (var link in QuickLinks)
-            {
-                <a href="@link.Value" class="bdr-toc-link">@link.Key</a>
-            }
-        </div>
+        @foreach (var link in QuickLinks)
+        {
+            <a href="@link.Value" class="bdr-toc-link">@link.Key</a>
+        }
     </div>
-</aside>
+</div>
 
 @code {
     [Parameter]
