@@ -15,8 +15,10 @@
         });
     });
 
-    // Update active TOC link on scroll
-    window.addEventListener('scroll', function () {
+    // Update active TOC link on scroll. User can specify a different scroll element by adding the class `bdr-scroll-container` to a parent element.
+	const scrollEl = document.querySelector('.bdr-scroll-container') || window;
+
+	scrollEl.addEventListener('scroll', function () {
         const sections = document.querySelectorAll('section[id]');
         const tocLinks = document.querySelectorAll('.bdr-toc-link');
 
