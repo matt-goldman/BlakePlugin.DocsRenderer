@@ -19,24 +19,38 @@
 	const scrollEl = document.querySelector('.bdr-scroll-container') || window;
 
 	scrollEl.addEventListener('scroll', function () {
-        const sections = document.querySelectorAll('section[id]');
-        const tocLinks = document.querySelectorAll('.bdr-toc-link');
+		const sections = document.querySelectorAll('section[id]');
+		const tocLinks = document.querySelectorAll('.bdr-toc-link');
 
-        let current = '';
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            const sectionHeight = section.clientHeight;
-            if (window.pageYOffset >= sectionTop - 100) {
-                current = section.getAttribute('id');
-            }
-        });
+		let current = '';
+		
+		// Handle both window and container scrolling properly
+		const scrollTop = scrollEl === window ? window.pageYOffset : scrollEl.scrollTop;
+		const containerRect = scrollEl === window ? { top: 0 } : scrollEl.getBoundingClientRect();
 
-        tocLinks.forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('href') === '#' + current) {
-                link.classList.add('active');
-            }
-        });
+		sections.forEach(section => {
+			let sectionTop;
+			
+			if (scrollEl === window) {
+				// For window scrolling, use offsetTop (original behavior)
+				sectionTop = section.offsetTop;
+			} else {
+				// For container scrolling, calculate relative position
+				const sectionRect = section.getBoundingClientRect();
+				sectionTop = sectionRect.top - containerRect.top + scrollTop;
+			}
+			
+			if (scrollTop >= sectionTop - 100) {
+				current = section.getAttribute('id');
+			}
+		});
+
+		tocLinks.forEach(link => {
+			link.classList.remove('active');
+			if (link.getAttribute('href') === '#' + current) {
+				link.classList.add('active');
+			}
+		});
 	});
 
 	Prism.highlightAll();
