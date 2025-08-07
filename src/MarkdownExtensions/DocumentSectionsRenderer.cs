@@ -4,6 +4,7 @@ using Markdig.Renderers.Html;
 using Markdig.Syntax;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace BlakePlugin.DocsRenderer.MarkdownExtensions;
 
@@ -30,9 +31,17 @@ public class DocumentSectionRenderer(ILogger? logger = null) : HtmlObjectRendere
             logger?.LogDebug("[BlakePlugin.DocsRenderer] Skipping empty heading block.");
             return; // Skip empty headings
         }
-                
+
         var headingText = block.Inline?.FirstChild?.ToString() ?? "";
-        var headingId = headingText.ToLowerInvariant().Replace(" ", "-");
+        var headingId = headingText
+            .ToLowerInvariant();
+
+        // Remove anything not alphanumeric, dash, or space
+        headingId = Regex.Replace(headingId, @"[^\w\- ]", "");
+
+        // Replace spaces with dashes
+        headingId = headingId.Replace(" ", "-");
+
 
         var level = block.Level;
         var newSection = new Section { Id = headingId, Text = headingText };

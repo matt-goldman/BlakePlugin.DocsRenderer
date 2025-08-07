@@ -1,57 +1,20 @@
 ﻿function initializeDocsPlugin() {
-    // This function can be used to initialize any plugin-specific functionality
-    console.log("Plugin intializing...");
+	// This function can be used to initialize any plugin-specific functionality
+	console.log("Plugin intializing...");
 
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
-
-    // Update active TOC link on scroll. User can specify a different scroll element by adding the class `bdr-scroll-container` to a parent element.
-	const scrollEl = document.querySelector('.bdr-scroll-container') || window;
-
-	scrollEl.addEventListener('scroll', function () {
-		const sections = document.querySelectorAll('section[id]');
-		const tocLinks = document.querySelectorAll('.bdr-toc-link');
-
-		let current = '';
-		
-		// Handle both window and container scrolling properly
-		const scrollTop = scrollEl === window ? window.pageYOffset : scrollEl.scrollTop;
-		const containerRect = scrollEl === window ? { top: 0 } : scrollEl.getBoundingClientRect();
-
-		sections.forEach(section => {
-			let sectionTop;
-			
-			if (scrollEl === window) {
-				// For window scrolling, use offsetTop (original behavior)
-				sectionTop = section.offsetTop;
-			} else {
-				// For container scrolling, calculate relative position
-				const sectionRect = section.getBoundingClientRect();
-				sectionTop = sectionRect.top - containerRect.top + scrollTop;
-			}
-			
-			if (scrollTop >= sectionTop - 100) {
-				current = section.getAttribute('id');
-			}
-		});
-
-		tocLinks.forEach(link => {
-			link.classList.remove('active');
-			if (link.getAttribute('href') === '#' + current) {
-				link.classList.add('active');
+	document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+		anchor.addEventListener('click', function (e) {
+			e.preventDefault();
+			const target = document.querySelector(this.getAttribute('href'));
+			if (target) {
+				target.scrollIntoView({
+					behavior: 'smooth',
+					block: 'start'
+				});
 			}
 		});
 	});
+
 
 	Prism.highlightAll();
 
@@ -94,7 +57,7 @@
 	//	}
 	//});
 
-    console.log("Plugin initialized successfully.");
+	console.log("Plugin initialized successfully.");
 }
 
 
