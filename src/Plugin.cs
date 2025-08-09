@@ -3,6 +3,7 @@ using BlakePlugin.DocsRenderer.MarkdownExtensions;
 using BlakePlugin.DocsRenderer.Types;
 using Microsoft.Extensions.Logging;
 using System.Text;
+using System.Web;
 
 namespace BlakePlugin.DocsRenderer;
 
@@ -173,9 +174,9 @@ public class Plugin : IBlakePlugin
             codeBlockContent.AppendLine("    // Razor code block variables to prevent @ symbol issues");
             foreach (var (_, variableName, codeContent) in codeBlocks)
             {
-                // Escape the code content for use in a C# string literal
-                var escapedCode = codeContent.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r\n", "\\r\\n").Replace("\n", "\\n").Replace("\r", "\\r");
-                codeBlockContent.AppendLine($"    private string {variableName} = @\"{EscapeVerbatim(codeContent)}\";");
+                // HTML-encode the code content so it displays as text instead of rendering HTML tags
+                var htmlEncodedContent = HttpUtility.HtmlEncode(codeContent);
+                codeBlockContent.AppendLine($"    private string {variableName} = @\"{EscapeVerbatim(htmlEncodedContent)}\";");
             }
         }
 
