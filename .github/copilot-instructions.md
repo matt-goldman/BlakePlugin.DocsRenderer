@@ -4,6 +4,10 @@ Always reference these instructions first and fallback to search or bash command
 
 BlakePlugin.DocsRenderer is a .NET 9.0 Blazor Razor library plugin for Blake static site generator that adds documentation rendering capabilities including scrollspy navigation, table of contents (TOC) generation, and enhanced Prism.js code syntax highlighting.
 
+## Development Guidelines
+
+**Always search Microsoft documentation (MS Learn) when working with .NET, Windows, or Microsoft features, or APIs.** Use the `microsoft_docs_search` tool to find the most current information about capabilities, best practices, and implementation patterns before making changes.
+
 ## Working Effectively
 
 ### Prerequisites and Environment Setup
