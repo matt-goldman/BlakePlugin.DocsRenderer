@@ -87,6 +87,10 @@ This plugin extends Blake's Markdig pipeline with:
 - **Microsoft.AspNetCore.Components.Web**: Blazor component framework
 - **Targets**: net9.0 framework only
 
+Refer to the Blake code for further contex: https://github.com/matt-goldman/blake
+You can also refer to the docs repo: https://github.com/matt-goldman/blakedocs
+And the published version of the docs: https://docs.blake-ssg.org
+
 ## Validation Scenarios
 
 ### After Making Changes
