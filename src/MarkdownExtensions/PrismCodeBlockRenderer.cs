@@ -21,6 +21,7 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
         { "markup", ".html" },
         { "css", ".css" },
         { "clike", ".js" },
+        { "razor", ".razor" },
         { "abap", ".abap" },
         { "actionscript", ".as" },
         { "ada", ".ada" },
@@ -264,14 +265,41 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
         debugRenderer.Write(">");
 
         var code = ExtractSourceCode(node);
-        var escapedCode = HttpUtility.HtmlEncode(code);
 
-        debugRenderer.Write(escapedCode)
-               .Write("</code>");
+        // Special handling for Razor code blocks to prevent @ symbols from breaking Blazor compilation
+        if (languageCode == "razor")
+        {
+            logger?.LogDebug("Handling Razor code block specially to avoid @ symbol issues.");
+            
+            // Generate a unique variable name for this code block
+            var variableName = $"_codeBlock_{Guid.NewGuid():N}";
+            
+            // Encode the code content for safe storage in HTML comment
+            var encodedCode = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(code));
+            
+            // Write a comment that will be processed later by the plugin
+            renderer.Write($"<!-- blake:codeblock:{variableName}:{encodedCode} -->");
+            
+            // Write the HTML structure that references the variable
+            debugRenderer.Write($"@((MarkupString){variableName})")
+                   .Write("</code>");
+            
+            debugRenderer.Write("</pre>");
+            
+            renderer.Write(stringWriter.ToString());
+        }
+        else
+        {
+            // Normal handling for non-Razor code blocks
+            var escapedCode = HttpUtility.HtmlEncode(code);
+            
+            debugRenderer.Write(escapedCode)
+                   .Write("</code>");
 
-       debugRenderer.Write("</pre>");
+            debugRenderer.Write("</pre>");
 
-       renderer.Write(stringWriter.ToString());
+            renderer.Write(stringWriter.ToString());
+        }
     }
 
     private static string GetArgumentValue(string arguments, string key)
