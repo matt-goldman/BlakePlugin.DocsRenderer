@@ -89,7 +89,7 @@ This plugin extends Blake's Markdig pipeline with:
 
 Refer to the Blake code for further contex: https://github.com/matt-goldman/blake
 You can also refer to the docs repo: https://github.com/matt-goldman/blakedocs
-And the published version of the docs: https://docs.blake-ssg.org
+And the published version of the docs: https://blake-ssg.org
 
 ## Validation Scenarios
 
