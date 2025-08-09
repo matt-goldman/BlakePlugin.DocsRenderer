@@ -13,12 +13,14 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
     private readonly CodeBlockRenderer _codeBlockRenderer = codeBlockRenderer ?? new CodeBlockRenderer();
     // Adding options to the renderer
     private readonly PrismOptions _options = options ?? new PrismOptions();
-    public static readonly Dictionary<string, string> LanguageToFileExtension = new()
+
+    private static readonly Dictionary<string, string> LanguageToFileExtension = new()
     {
         { "javascript", ".js" },
         { "csharp", ".cs" },
         { "python", ".py" },
         { "markup", ".html" },
+        { "html", ".html" },
         { "css", ".css" },
         { "clike", ".js" },
         { "razor", ".razor" },
@@ -267,9 +269,14 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
         var code = ExtractSourceCode(node);
 
         // Special handling for Razor code blocks to prevent @ symbols from breaking Blazor compilation
-        if (languageCode == "razor")
+        if (languageCode == "razor" || code.Contains('@'))
         {
             logger?.LogDebug("Handling Razor code block specially to avoid @ symbol issues.");
+
+            if (languageCode != "razor")
+            {
+                logger?.LogWarning("Language code is not 'razor', but contains '@'. Processing as Razor code, but this might cause issues in Razor components.");
+            }
             
             // Generate a unique variable name for this code block
             var variableName = $"_codeBlock_{Guid.NewGuid():N}";
@@ -283,10 +290,6 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
             // Write the HTML structure that references the variable
             debugRenderer.Write($"@((MarkupString){variableName})")
                    .Write("</code>");
-            
-            debugRenderer.Write("</pre>");
-            
-            renderer.Write(stringWriter.ToString());
         }
         else
         {
@@ -295,11 +298,10 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
             
             debugRenderer.Write(escapedCode)
                    .Write("</code>");
-
-            debugRenderer.Write("</pre>");
-
-            renderer.Write(stringWriter.ToString());
         }
+
+        debugRenderer.Write("</pre>");
+        renderer.Write(stringWriter.ToString());
     }
 
     private static string GetArgumentValue(string arguments, string key)
@@ -329,12 +331,12 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
     }
 
 
-    protected static string ExtractSourceCode(LeafBlock node)
+    private static string ExtractSourceCode(LeafBlock node)
     {
         var code = new StringBuilder();
         var lines = node.Lines.Lines;
-        int totalLines = lines.Length;
-        for (int i = 0; i < totalLines; i++)
+        var totalLines = lines.Length;
+        for (var i = 0; i < totalLines; i++)
         {
             var line = lines[i];
             var slice = line.Slice;
