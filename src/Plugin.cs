@@ -3,6 +3,7 @@ using BlakePlugin.DocsRenderer.MarkdownExtensions;
 using BlakePlugin.DocsRenderer.Types;
 using Microsoft.Extensions.Logging;
 using System.Text;
+using System.Web;
 
 namespace BlakePlugin.DocsRenderer;
 
@@ -10,10 +11,10 @@ public class Plugin : IBlakePlugin
 {
     private static readonly PrismOptions _options = new()
     {
-        UseLineNumbers = true,
-        UseCopyButton = true,
+        UseLineNumbers      = true,
+        UseCopyButton       = true,
         UseLineHighlighting = true,
-        UseLineDiff = true
+        UseLineDiff         = true
     };
 
     public Task BeforeBakeAsync(BlakeContext context, ILogger? logger = null)
@@ -73,7 +74,7 @@ public class Plugin : IBlakePlugin
             if (codeBlocks.Count > 0)
             {
                 logger?.LogInformation("Found {Count} Razor code blocks in page: {Title} ({Slug})", codeBlocks.Count, page.Page.Title, page.Page.Slug);
-
+                
                 // Remove code block comments from HTML
                 foreach (var (comment, _, _) in codeBlocks)
                 {
@@ -99,29 +100,29 @@ public class Plugin : IBlakePlugin
     {
         var codeBlocks = new List<(string comment, string variableName, string codeContent)>();
         var codeBlockMarker = "<!-- blake:codeblock:";
-
+        
         var startIndex = 0;
         while (true)
         {
             var commentStart = html.IndexOf(codeBlockMarker, startIndex);
             if (commentStart == -1) break;
-
+            
             var commentEnd = html.IndexOf("-->", commentStart);
             if (commentEnd == -1)
             {
                 logger?.LogWarning("Found malformed code block comment (no end marker)");
                 break;
             }
-
+            
             var fullComment = html.Substring(commentStart, commentEnd + 3 - commentStart);
             var commentContent = html.Substring(commentStart + codeBlockMarker.Length, commentEnd - commentStart - codeBlockMarker.Length);
-
+            
             var parts = commentContent.Split(':');
             if (parts.Length == 2)
             {
                 var variableName = parts[0];
                 var encodedContent = parts[1];
-
+                
                 try
                 {
                     var decodedBytes = Convert.FromBase64String(encodedContent);
@@ -137,10 +138,10 @@ public class Plugin : IBlakePlugin
             {
                 logger?.LogWarning("Found malformed code block comment (invalid format)");
             }
-
+            
             startIndex = commentEnd + 3;
         }
-
+        
         return codeBlocks;
     }
 
@@ -161,11 +162,11 @@ public class Plugin : IBlakePlugin
 
         // Generate the content to add to the @code block
         var codeBlockContent = new StringBuilder();
-
+        
         // Add sections
         var staticSectionList = GetStaticSectionList(sections);
         codeBlockContent.AppendLine(staticSectionList);
-
+        
         // Add code block variables
         if (codeBlocks.Count > 0)
         {
@@ -173,9 +174,9 @@ public class Plugin : IBlakePlugin
             codeBlockContent.AppendLine("    // Razor code block variables to prevent @ symbol issues");
             foreach (var (_, variableName, codeContent) in codeBlocks)
             {
-                // Escape the code content for use in a C# string literal
-                var escapedCode = codeContent.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r\n", "\\r\\n").Replace("\n", "\\n").Replace("\r", "\\r");
-                codeBlockContent.AppendLine($"    private string {variableName} = @\"{EscapeVerbatim(codeContent)}\";");
+                // HTML-encode the code content so it displays as text instead of rendering HTML tags
+                var htmlEncodedContent = HttpUtility.HtmlEncode(codeContent);
+                codeBlockContent.AppendLine($"    private string {variableName} = @\"{EscapeVerbatim(htmlEncodedContent)}\";");
             }
         }
 
@@ -257,7 +258,7 @@ public class Plugin : IBlakePlugin
             AppendSection(section, sb, 2);
         }
         sb.AppendLine("    ];");
-
+        
         return sb.ToString();
     }
 

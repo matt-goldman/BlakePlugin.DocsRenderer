@@ -270,32 +270,29 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
         if (languageCode == "razor")
         {
             logger?.LogDebug("Handling Razor code block specially to avoid @ symbol issues.");
-
+            
             // Generate a unique variable name for this code block
             var variableName = $"_codeBlock_{Guid.NewGuid():N}";
-
-            // HTML-encode the code content first so it displays as text, not HTML
-            var htmlEncodedCode = HttpUtility.HtmlEncode(code);
-
-            // Encode the HTML-encoded content for safe storage in HTML comment
-            var encodedCode = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(htmlEncodedCode));
-
+            
+            // Encode the code content for safe storage in HTML comment
+            var encodedCode = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(code));
+            
             // Write a comment that will be processed later by the plugin
             renderer.Write($"<!-- blake:codeblock:{variableName}:{encodedCode} -->");
-
+            
             // Write the HTML structure that references the variable
             debugRenderer.Write($"@((MarkupString){variableName})")
                    .Write("</code>");
-
+            
             debugRenderer.Write("</pre>");
-
+            
             renderer.Write(stringWriter.ToString());
         }
         else
         {
             // Normal handling for non-Razor code blocks
             var escapedCode = HttpUtility.HtmlEncode(code);
-
+            
             debugRenderer.Write(escapedCode)
                    .Write("</code>");
 
@@ -312,7 +309,7 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
         var argument = args.FirstOrDefault(arg => arg.StartsWith($"{key}="));
 
         var argValue = argument?.Substring($"{key}=".Length);
-        return argValue ?? string.Empty;
+        return argValue?? string.Empty;
     }
 
     private static void ParseLineDiffs(string argument, HtmlAttributes attributes)
