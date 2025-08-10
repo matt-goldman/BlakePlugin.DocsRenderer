@@ -1,5 +1,6 @@
 ﻿@using BlakePlugin.DocsRenderer.Types
 @using Microsoft.AspNetCore.Components.Routing
+@using Blazicons
 
 @if (Nodes?.Any() == true)
 {
@@ -8,19 +9,20 @@
         {
             var expanded = IsExpanded(node);
             var active = IsActive(node);
+            var svg = IsExpanded(node) ? BootstrapIcon.ChevronDown : BootstrapIcon.ChevronRight;
 
             <li class="nav-item bdr-toc-item">
                 @if (node.Children.Any())
                 {
-                    <div class="bdr-toc-row d-flex align-items-center @(active ? "active" : "")" 
+                    <div class="bdr-toc-row d-flex align-items-center @(active ? "active" : "")"
                          @onclick="() => ToggleExpanded(node.Slug)"
-                         role="button" 
-                         tabindex="0" 
+                         role="button"
+                         tabindex="0"
                          aria-expanded="@expanded">
-                        <NavLink class="bdr-toc-link flex-grow-1" href="@node.Slug">
+                        <Blazicon Svg="@svg" />
+                        <span class="bdr-toc-link flex-grow-1" href="@node.Slug">
                             @node.Text
-                        </NavLink>
-                        <span class="bdr-chevron bi @(expanded ? "bi-chevron-down" : "bi-chevron-right") ms-2"></span>
+                        </span>
                     </div>
                 }
                 else

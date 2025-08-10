@@ -378,8 +378,6 @@ div.code-toolbar {
 
 /* Page TOC Mobile Styles */
 .bdr-page-toc-mobile {
-    background-color: rgba(248, 249, 250, 0.8);
-    border-radius: 0.5rem;
     padding: 1rem;
     margin-bottom: 1.5rem;
     border: 1px solid rgba(0, 0, 0, 0.125);
