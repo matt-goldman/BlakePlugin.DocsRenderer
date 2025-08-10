@@ -2,6 +2,9 @@
 	// This function can be used to initialize any plugin-specific functionality
 	console.log("Plugin intializing...");
 
+	// Initialize mobile TOC interactions
+	initializeMobileToc();
+
 	document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 		anchor.addEventListener('click', function (e) {
 			e.preventDefault();
@@ -58,6 +61,64 @@
 	//});
 
 	console.log("Plugin initialized successfully.");
+}
+
+function initializeMobileToc() {
+	// Enhanced mobile TOC interactions
+	console.log("Initializing mobile TOC...");
+	
+	// Add keyboard support for mobile TOC
+	document.addEventListener('keydown', function(e) {
+		if (e.key === 'Enter' || e.key === ' ') {
+			const target = e.target;
+			if (target.classList.contains('bdr-toc-row') || target.closest('.bdr-toc-row')) {
+				e.preventDefault();
+				target.click();
+			}
+		}
+	});
+	
+	// Auto-expand sections containing current page in site TOC
+	autoExpandCurrentPage();
+	
+	// Auto-expand first level of page TOC for better UX
+	autoExpandPageTocFirstLevel();
+}
+
+function autoExpandCurrentPage() {
+	// Check if there's an active link in the site TOC and ensure its parent sections are expanded
+	const activeLinks = document.querySelectorAll('.bdr-site-toc-mobile .bdr-toc-link.active');
+	activeLinks.forEach(link => {
+		let parent = link.closest('.bdr-toc-item');
+		while (parent) {
+			const toggleButton = parent.querySelector('.bdr-toc-row[role="button"]');
+			if (toggleButton) {
+				// Simulate click to expand if not already expanded
+				const chevron = toggleButton.querySelector('.bdr-chevron');
+				if (chevron && chevron.classList.contains('bi-chevron-right')) {
+					toggleButton.click();
+				}
+			}
+			parent = parent.parentElement.closest('.bdr-toc-item');
+		}
+	});
+}
+
+function autoExpandPageTocFirstLevel() {
+	// Auto-expand first level sections in page TOC for better mobile UX
+	const firstLevelSections = document.querySelectorAll('.bdr-page-toc-mobile .bdr-page-toc-item:not(.bdr-page-toc-child-item)');
+	firstLevelSections.forEach((section, index) => {
+		// Expand first few sections (e.g., first 3) automatically
+		if (index < 3) {
+			const toggleButton = section.querySelector('.bdr-toc-row[role="button"]');
+			if (toggleButton) {
+				const chevron = toggleButton.querySelector('.bdr-chevron');
+				if (chevron && chevron.classList.contains('bi-chevron-right')) {
+					setTimeout(() => toggleButton.click(), index * 100); // Staggered expansion
+				}
+			}
+		}
+	});
 }
 
 

@@ -3,27 +3,39 @@
 
 @if (Nodes?.Any() == true)
 {
-    <ul class="nav flex-column">
+    <ul class="nav flex-column bdr-site-toc-mobile">
         @foreach (var node in Nodes)
         {
             var expanded = IsExpanded(node);
             var active = IsActive(node);
 
-            <li class="nav-item">
-                <NavLink class="nav-link bdr-node-title d-flex align-items-center justify-content-between"
-                   href="@node.Slug"
-                   aria-expanded="@expanded">
-                    <span>@node.Text</span>
-                    @if (node.Children.Any())
-                    {
-                        <span class="bi @(expanded ? "bi-chevron-down" : "bi-chevron-up")"></span>
-                    }
-                </NavLink>
-
+            <li class="nav-item bdr-toc-item">
                 @if (node.Children.Any())
                 {
-                    <div class="collapse @(expanded ? "show" : "") ms-3">
-                        <SiteTocMobile Nodes="node.Children" ActiveSlug="ActiveSlug" />
+                    <div class="bdr-toc-row d-flex align-items-center @(active ? "active" : "")" 
+                         @onclick="() => ToggleExpanded(node.Slug)"
+                         role="button" 
+                         tabindex="0" 
+                         aria-expanded="@expanded">
+                        <NavLink class="bdr-toc-link flex-grow-1" href="@node.Slug">
+                            @node.Text
+                        </NavLink>
+                        <span class="bdr-chevron bi @(expanded ? "bi-chevron-down" : "bi-chevron-right") ms-2"></span>
+                    </div>
+                }
+                else
+                {
+                    <div class="bdr-toc-row @(active ? "active" : "")">
+                        <NavLink class="bdr-toc-link" href="@node.Slug">
+                            @node.Text
+                        </NavLink>
+                    </div>
+                }
+
+                @if (node.Children.Any() && expanded)
+                {
+                    <div class="bdr-toc-children ms-3 mt-2">
+                        <SiteTocMobile Nodes="node.Children" ActiveSlug="ActiveSlug" ExpandedNodes="ExpandedNodes" />
                     </div>
                 }
             </li>
@@ -39,10 +51,37 @@
     [Parameter]
     public required string ActiveSlug { get; set; }
 
-    private bool IsExpanded(TocNode node) =>
-        !string.IsNullOrEmpty(ActiveSlug) &&
-        ActiveSlug.StartsWith(node.Slug, StringComparison.OrdinalIgnoreCase);
+    [Parameter]
+    public HashSet<string> ExpandedNodes { get; set; } = new();
+
+    private bool IsExpanded(TocNode node)
+    {
+        if (ExpandedNodes.Contains(node.Slug))
+            return true;
+            
+        return !string.IsNullOrEmpty(ActiveSlug) &&
+               (ActiveSlug.StartsWith(node.Slug, StringComparison.OrdinalIgnoreCase) ||
+                node.Children.Any(child => IsActiveInSubtree(child, ActiveSlug)));
+    }
 
     private bool IsActive(TocNode node) =>
         string.Equals(ActiveSlug, node.Slug, StringComparison.OrdinalIgnoreCase);
+
+    private bool IsActiveInSubtree(TocNode node, string activeSlug)
+    {
+        if (string.Equals(activeSlug, node.Slug, StringComparison.OrdinalIgnoreCase))
+            return true;
+            
+        return node.Children.Any(child => IsActiveInSubtree(child, activeSlug));
+    }
+
+    private void ToggleExpanded(string slug)
+    {
+        if (ExpandedNodes.Contains(slug))
+            ExpandedNodes.Remove(slug);
+        else
+            ExpandedNodes.Add(slug);
+            
+        StateHasChanged();
+    }
 }
