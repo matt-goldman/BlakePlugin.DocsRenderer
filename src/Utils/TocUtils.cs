@@ -44,11 +44,11 @@ public static class TocUtils
                 {
                     child = new TocNode
                     {
-                        Id          = segment,
-                        Text        = isLeaf ? page.Title : segment,
-                        Slug        = slugPath,
-                        Children    = [],
-                        SortOrder   = isLeaf ? GetSortOrder(page) : 0
+                        Id = segment,
+                        Text = isLeaf ? page.Title : segment,
+                        Slug = slugPath,
+                        Children = [],
+                        SortOrder = isLeaf ? GetSortOrder(page) : 0
                     };
 
                     current.Children.Add(child);
