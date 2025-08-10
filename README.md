@@ -124,12 +124,6 @@ Additionally, you can specify `pageOrder: <order>` in your front matter to contr
 
 > **Note**: It actually sorts using the default directory sort order. This is usually alphabetically by filename, but it can be affected by the filesystem or other factors. If you need a specific order, use the `pageOrder` front matter field.
 
-You don't need to do anything special to your Markdown files; the plugin will automatically process them. However, you should ensure that your documentation pages are structured with headings (e.g., `#`, `##`, `###`) to enable sectioning and TOC generation.
-
-Additionally, you can specify `pageOrder: <order>` in your front matter to control the order of pages in the TOC. But you don't have to do this; the plugin will automatically order pages based on their filenames if `pageOrder` is not specified.
-
-> **Note**: It actually sorts using the default directory sort order. This is usually alphabetically by filename, but it can be affected by the filesystem or other factors. If you need a specific order, use the `pageOrder` front matter field.
-
 ### Razor Components
 
 The plugin provides three main Razor components:
@@ -340,7 +334,13 @@ The plugin's JavaScript will still provide scrollspy functionality regardless of
 
 ## Customisation
 
-While the behaviour of the plugin is mostly fixed, you can use the generated data to drive your own components. The included components are trivial; you can copy the code and modify it to suit your needs (e.g. add your own styles or additional functionality).
+The provided Razor components use Bootstrap for styling, which was chosen because it's included by default in the Blazor WASM template. If you're not using Bootstrap or want different styling, you have several options:
 
-While the components depend on Bootstrap, they do use specific namespaces CSS classes, so you can override the styles in your own CSS files if you want to change the appearance without affecting the functionality. Be careful of simply excluding the CSS include as it also has styling for code blocks and other elements that the plugin uses. You can do whatever works for you.
+1. **Override styles**: The components use specific CSS classes, so you can override the styles in your own CSS files without affecting functionality.
+
+2. **Copy and modify components**: The included components are straightforward - you can copy the razor component code from this repository and replace the Bootstrap classes with your own styling framework or custom CSS.
+
+3. **Build custom components**: Use the generated `_sections` data to create completely custom navigation components that fit your design requirements.
+
+While the behaviour of the plugin is mostly fixed, you can use the generated data to drive your own components. Be careful of simply excluding the CSS include as it also has styling for code blocks and other elements that the plugin uses.
 

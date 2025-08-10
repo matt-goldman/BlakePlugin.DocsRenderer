@@ -26,6 +26,7 @@ BlakePlugin.DocsRenderer is a .NET 9.0 Blazor Razor library plugin for Blake sta
 - **Format validation**: `dotnet format --verify-no-changes` -- currently fails with 25+ whitespace formatting errors. This is a known issue but does NOT prevent building.
 - **Apply code formatting**: `dotnet format` -- fixes whitespace issues automatically. Run this before committing changes.
 - **No unit tests exist**: `dotnet test` passes but runs zero tests. This is expected - the project has no test projects.
+- **IMPORTANT**: PRs should NOT include formatting changes. Only modify files that are directly related to the issue being addressed. Do not run `dotnet format` as part of regular PR changes.
 
 ### Manual Validation and Testing
 Since this is a Blake plugin library, validation requires integrating with the Blake ecosystem:
@@ -39,7 +40,7 @@ Since this is a Blake plugin library, validation requires integrating with the B
 
 ### CI Validation Commands
 - The GitHub Actions workflow in `.github/workflows/ci.yml` runs the same build commands
-- **Always run** `dotnet format` before committing to avoid CI failures
+- **Do NOT run** `dotnet format` in PRs unless specifically fixing formatting issues
 - **Always test** your changes by running the full build pipeline: restore → build → pack
 
 ## Common Tasks and File Locations
@@ -94,10 +95,10 @@ And the published version of the docs: https://blake-ssg.org
 ## Validation Scenarios
 
 ### After Making Changes
-1. **Code formatting**: Run `dotnet format` to fix whitespace issues
-2. **Build validation**: Run `dotnet build --configuration Release` to ensure compilation succeeds
-3. **Package creation**: Run `dotnet pack --configuration Release` to verify NuGet package generation
-4. **Integration test**: Create a simple Blake site and verify the plugin loads and functions correctly
-5. **Manual verification**: Check that generated TOCs, sections, and code highlighting work as expected in a Blake site
+1. **Build validation**: Run `dotnet build --configuration Release` to ensure compilation succeeds
+2. **Package creation**: Run `dotnet pack --configuration Release` to verify NuGet package generation
+3. **Integration test**: Create a simple Blake site and verify the plugin loads and functions correctly
+4. **Manual verification**: Check that generated TOCs, sections, and code highlighting work as expected in a Blake site
+5. **Code formatting**: Only run `dotnet format` if specifically addressing formatting issues, not as part of regular changes
 
-Always build and test your changes before committing. The CI pipeline will fail if code formatting is incorrect or if the build fails.
+Always build and test your changes before committing. Avoid including formatting changes in PRs unless that's the specific issue being addressed.
