@@ -85,7 +85,7 @@ public class DocumentSectionRenderer(ILogger? logger = null) : HtmlObjectRendere
         var sectionJson = System.Text.Json.JsonSerializer.Serialize(_sections);
         renderer.WriteLine($"<!-- blake:sections:{sectionJson} -->");
 
-        logger?.LogDebug("[BlakePlugin.DocsRenderer] Sections JSON written to renderer.");
+        logger?.LogDebug("[BlakePlugin.DocsRenderer] Sections JSON written to renderer."); 
     }
 }
 
