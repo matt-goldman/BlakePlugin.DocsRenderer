@@ -1,11 +1,11 @@
 namespace BlakePlugin.DocsRenderer.MarkdownExtensions;
 
 internal static class PrismSupportedLanguages
-    {
-        private static readonly HashSet<string> SupportedLanguages = new HashSet<string>(
-            [
-            // ReSharper disable StringLiteralTypo
-            "markup",
+{
+    private static readonly HashSet<string> SupportedLanguages = new HashSet<string>(
+        [
+        // ReSharper disable StringLiteralTypo
+        "markup",
             "css",
             "clike",
             "javascript",
@@ -158,11 +158,11 @@ internal static class PrismSupportedLanguages
             "xquery",
             "yaml",
             "xml"
-            // ReSharper restore StringLiteralTypo
-        ]);
+    // ReSharper restore StringLiteralTypo
+    ]);
 
-        public static bool IsSupportedLanguage(string language)
-        {
-            return !string.IsNullOrEmpty(language) && SupportedLanguages.Contains(language.ToLowerInvariant());
-        }
+    public static bool IsSupportedLanguage(string language)
+    {
+        return !string.IsNullOrEmpty(language) && SupportedLanguages.Contains(language.ToLowerInvariant());
     }
+}

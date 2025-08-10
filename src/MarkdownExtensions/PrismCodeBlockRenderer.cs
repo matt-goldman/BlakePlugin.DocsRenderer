@@ -277,16 +277,16 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
             {
                 logger?.LogWarning("Language code is not 'razor', but contains '@'. Processing as Razor code, but this might cause issues in Razor components.");
             }
-            
+
             // Generate a unique variable name for this code block
             var variableName = $"_codeBlock_{Guid.NewGuid():N}";
-            
+
             // Encode the code content for safe storage in HTML comment
             var encodedCode = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(code));
-            
+
             // Write a comment that will be processed later by the plugin
             renderer.Write($"<!-- blake:codeblock:{variableName}:{encodedCode} -->");
-            
+
             // Write the HTML structure that references the variable
             debugRenderer.Write($"@((MarkupString){variableName})")
                    .Write("</code>");
@@ -295,7 +295,7 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
         {
             // Normal handling for non-Razor code blocks
             var escapedCode = HttpUtility.HtmlEncode(code);
-            
+
             debugRenderer.Write(escapedCode)
                    .Write("</code>");
         }
@@ -311,7 +311,7 @@ public class PrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer, PrismOp
         var argument = args.FirstOrDefault(arg => arg.StartsWith($"{key}="));
 
         var argValue = argument?.Substring($"{key}=".Length);
-        return argValue?? string.Empty;
+        return argValue ?? string.Empty;
     }
 
     private static void ParseLineDiffs(string argument, HtmlAttributes attributes)
