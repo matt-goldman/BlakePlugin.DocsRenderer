@@ -88,7 +88,7 @@ public class Plugin : IBlakePlugin
             {
                 updatedHtml = AddSectionsAndCodeBlocksToPage(updatedHtml, sections, codeBlocks, page.Page.Title, logger);
 
-                var updatedPage = new GeneratedPage(page.Page, page.OutputPath, updatedHtml);
+                var updatedPage = new GeneratedPage(page.Page, page.OutputPath, updatedHtml, page.RawHtml);
                 context.GeneratedPages[context.GeneratedPages.IndexOf(page)] = updatedPage;
             }
         }
