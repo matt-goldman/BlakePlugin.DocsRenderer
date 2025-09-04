@@ -9,7 +9,7 @@ namespace BlakePlugin.DocsRenderer;
 
 public class Plugin : IBlakePlugin
 {
-    private static readonly PrismOptions _options = new()
+    private static readonly PrismOptions Options = new()
     {
         UseLineNumbers      = true,
         UseCopyButton       = true,
@@ -25,7 +25,7 @@ public class Plugin : IBlakePlugin
         logger?.LogInformation("[BlakePlugin.DocsRenderer] BeforeBakeAsync called.");
 
         context.PipelineBuilder
-            .UsePrism(_options, logger)
+            .UsePrism(Options, logger)
             .UseDocumentSections(logger);
 
         return Task.CompletedTask;
@@ -104,10 +104,10 @@ public class Plugin : IBlakePlugin
         var startIndex = 0;
         while (true)
         {
-            var commentStart = html.IndexOf(codeBlockMarker, startIndex);
+            var commentStart = html.IndexOf(codeBlockMarker, startIndex, StringComparison.Ordinal);
             if (commentStart == -1) break;
             
-            var commentEnd = html.IndexOf("-->", commentStart);
+            var commentEnd = html.IndexOf("-->", commentStart, StringComparison.Ordinal);
             if (commentEnd == -1)
             {
                 logger?.LogWarning("Found malformed code block comment (no end marker)");
@@ -126,7 +126,7 @@ public class Plugin : IBlakePlugin
                 try
                 {
                     var decodedBytes = Convert.FromBase64String(encodedContent);
-                    var codeContent = System.Text.Encoding.UTF8.GetString(decodedBytes);
+                    var codeContent = Encoding.UTF8.GetString(decodedBytes);
                     codeBlocks.Add((fullComment, variableName, codeContent));
                 }
                 catch (Exception ex)
@@ -202,48 +202,6 @@ public class Plugin : IBlakePlugin
             logger?.LogInformation("No existing @code block found in RazorHtml.");
             // If no @code block found, append the content at the end
             updatedHtml += $"{Environment.NewLine}@code{Environment.NewLine}{{{Environment.NewLine}{codeBlockContent}{Environment.NewLine}}}";
-        }
-
-        return updatedHtml;
-    }
-
-    private static string AddSectionsToPage(string razorHtml, string staticSectionList, string pageTitle, ILogger? logger)
-    {
-        var updatedHtml = razorHtml;
-
-        // add the using statement to the top of the RazorHtml if not already present
-        if (!updatedHtml.Contains("using BlakePlugin.DocsRenderer.Types;"))
-        {
-            logger?.LogInformation("Adding using statement for BlakePlugin.DocsRenderer.Types.");
-            updatedHtml = $"@using BlakePlugin.DocsRenderer.Types;{Environment.NewLine}{updatedHtml}";
-        }
-        else
-        {
-            logger?.LogInformation("Using statement for BlakePlugin.DocsRenderer.Types already present.");
-        }
-
-        if (updatedHtml.Contains("@code"))
-        {
-            logger?.LogInformation("Found existing @code block in RazorHtml.");
-            // Find the last closing brace of the @code block
-            var lastBraceIndex = updatedHtml.LastIndexOf('}');
-
-            if (lastBraceIndex >= 0)
-            {
-                // Insert the static section list before the last closing brace
-                updatedHtml = updatedHtml.Insert(lastBraceIndex, $"{Environment.NewLine}{staticSectionList}");
-            }
-            else
-            {
-                // malformed RazorHtml, skip and log an error
-                logger?.LogWarning("Could not find a valid @code block in the RazorHtml in page {Title}.", pageTitle);
-            }
-        }
-        else
-        {
-            logger?.LogInformation("No existing @code block found in RazorHtml.");
-            // If no @code block found, append the static section list at the end
-            updatedHtml += $"{Environment.NewLine}@code{Environment.NewLine}{{{Environment.NewLine}{staticSectionList}{Environment.NewLine}}}";
         }
 
         return updatedHtml;
